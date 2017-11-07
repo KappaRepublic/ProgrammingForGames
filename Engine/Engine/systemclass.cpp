@@ -8,6 +8,7 @@ SystemClass::SystemClass()
 {
 	m_Input = 0;
 	m_Graphics = 0;
+	m_sound = 0;
 }
 
 
@@ -58,6 +59,21 @@ bool SystemClass::Initialize()
 		return false;
 	}
 	
+
+	// Create the audio object
+	m_sound = new SoundClass;
+	if (!m_sound) {
+		return false;
+	}
+
+	// Initialize the audio object
+	result = m_sound->Initialize(m_hwnd);
+	if (!result)
+	{
+		MessageBox(m_hwnd, L"Could not initialize Direct Sound.", L"Error", MB_OK);
+		return false;
+	}
+
 	return true;
 }
 
@@ -77,6 +93,12 @@ void SystemClass::Shutdown()
 	{
 		delete m_Input;
 		m_Input = 0;
+	}
+
+	// Release the audio object
+	if (m_sound) {
+		delete m_sound;
+		m_sound = 0;
 	}
 
 	// Shutdown the window.

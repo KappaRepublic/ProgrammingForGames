@@ -13,6 +13,18 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Header Files\SceneGraph">
+      <UniqueIdentifier>{c6b546cf-d2a6-4ddf-a396-12a3ad09fa33}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\SceneGraph">
+      <UniqueIdentifier>{8e01536e-e866-430d-a97d-d78d18fa68de}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Geometry">
+      <UniqueIdentifier>{d72ee8ff-b8c0-4b8e-b144-418235231649}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Geometry">
+      <UniqueIdentifier>{a7e64fd3-5dee-469e-b20b-2da8e72e5b09}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cameraclass.cpp">
@@ -42,6 +54,24 @@
     <ClCompile Include="systemclass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="BaseMesh.cpp">
+      <Filter>Source Files\Geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="textureclass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="soundclass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="bumpmapshaderclass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TextureArray.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FireShaderClass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cameraclass.h">
@@ -68,12 +98,42 @@
     <ClInclude Include="systemclass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="BaseMesh.h">
+      <Filter>Header Files\Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="textureclass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="soundclass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="bumpmapshaderclass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureArray.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FireShaderClass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="light.ps">
       <Filter>Shader Files</Filter>
     </None>
     <None Include="light.vs">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="bump.ps">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="bump.vs">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="fire.vs">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="fire.ps">
       <Filter>Shader Files</Filter>
     </None>
   </ItemGroup>

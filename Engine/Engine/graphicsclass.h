@@ -12,6 +12,8 @@
 #include "cameraclass.h"
 #include "modelclass.h"
 #include "lightshaderclass.h"
+#include "bumpmapshaderclass.h"
+#include "FireShaderClass.h"
 #include "lightclass.h"
 
 
@@ -45,7 +47,10 @@ private:
 	D3DClass* m_D3D;
 	CameraClass* m_Camera;
 	ModelClass* m_Model;
+	ModelClass* m_fire;
 	LightShaderClass* m_LightShader;
+	BumpMapShaderClass* m_bumpMapShader;
+	FireShaderClass* m_fireShader;
 	LightClass* m_Light;
 };
 

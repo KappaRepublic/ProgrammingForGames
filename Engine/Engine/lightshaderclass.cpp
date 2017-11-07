@@ -51,13 +51,13 @@ void LightShaderClass::Shutdown()
 
 
 bool LightShaderClass::Render(ID3D11DeviceContext* deviceContext, int indexCount, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, 
-							  D3DXMATRIX projectionMatrix , D3DXVECTOR3 lightDirection, D3DXVECTOR4 diffuseColor, float deltavalue)
+							  D3DXMATRIX projectionMatrix , D3DXVECTOR3 lightDirection, D3DXVECTOR4 diffuseColor, float deltavalue, ID3D11ShaderResourceView* texture)
 {
 	bool result;
 
 
 	// Set the shader parameters that it will use for rendering.
-	result = SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, lightDirection, diffuseColor, deltavalue);
+	result = SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, lightDirection, diffuseColor, deltavalue, texture);
 	if(!result)
 	{
 		return false;
@@ -350,7 +350,7 @@ void LightShaderClass::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND h
 
 bool LightShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, 
 										   D3DXMATRIX projectionMatrix, D3DXVECTOR3 lightDirection, 
-										   D3DXVECTOR4 diffuseColor, float deltavalue)
+										   D3DXVECTOR4 diffuseColor, float deltavalue, ID3D11ShaderResourceView* texture)
 {
 	HRESULT result;
     D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -437,6 +437,10 @@ bool LightShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext, D
 
 	// Finally set the light constant buffer in the pixel shader with the updated values.
 	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &m_lightBuffer);
+
+	// Set shader texture resource in the pixel shader.
+	deviceContext->PSSetShaderResources(0, 1, &texture);
+
 
 	return true;
 }
