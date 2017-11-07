@@ -32,6 +32,7 @@ private:
 
 	struct LightBufferType
 	{
+		D3DXVECTOR4 ambientColour;
 		D3DXVECTOR4 diffuseColor;
 		D3DXVECTOR3 lightDirection;
 		float padding;
@@ -44,16 +45,19 @@ public:
 
 	bool Initialize(ID3D11Device*, HWND);
 	void Shutdown();
-	bool Render(ID3D11DeviceContext*, int, D3DXMATRIX, D3DXMATRIX, D3DXMATRIX, ID3D11ShaderResourceView**, D3DXVECTOR3,
-		D3DXVECTOR4);
+	bool Render(ID3D11DeviceContext* deviceContext, int indexCount, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix,
+		D3DXMATRIX projectionMatrix, ID3D11ShaderResourceView** textureArray, D3DXVECTOR3 lightDirection,
+		D3DXVECTOR4 diffuseColor, D3DXVECTOR4 ambientColour);
 
 private:
 	bool InitializeShader(ID3D11Device*, HWND, WCHAR*, WCHAR*);
 	void ShutdownShader();
 	void OutputShaderErrorMessage(ID3D10Blob*, HWND, WCHAR*);
 
-	bool SetShaderParameters(ID3D11DeviceContext*, D3DXMATRIX, D3DXMATRIX, D3DXMATRIX, ID3D11ShaderResourceView**, D3DXVECTOR3,
-		D3DXVECTOR4);
+	bool SetShaderParameters(ID3D11DeviceContext* deviceContext, D3DXMATRIX worldMatrix,
+		D3DXMATRIX viewMatrix, D3DXMATRIX projectionMatrix,
+		ID3D11ShaderResourceView** textureArray, D3DXVECTOR3 lightDirection,
+		D3DXVECTOR4 diffuseColor, D3DXVECTOR4 ambientColour);
 	void RenderShader(ID3D11DeviceContext*, int);
 
 private:

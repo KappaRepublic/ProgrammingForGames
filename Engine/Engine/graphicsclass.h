@@ -15,6 +15,10 @@
 #include "bumpmapshaderclass.h"
 #include "FireShaderClass.h"
 #include "lightclass.h"
+#include "textclass.h"
+
+#include "ParticleShaderClass.h"
+#include "ParticleSystemClass.h"
 
 
 /////////////
@@ -38,7 +42,7 @@ public:
 
 	bool Initialize(int, int, HWND);
 	void Shutdown();
-	bool Frame();
+	bool Frame(int fps, int cpu, float frameTime);
 
 private:
 	bool Render(float, float);
@@ -52,6 +56,10 @@ private:
 	BumpMapShaderClass* m_bumpMapShader;
 	FireShaderClass* m_fireShader;
 	LightClass* m_Light;
+	TextClass* m_text;
+
+	ParticleShaderClass* m_ParticleShader;
+	ParticleSystemClass* m_ParticleSystem;
 };
 
 #endif

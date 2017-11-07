@@ -21,13 +21,16 @@ public:
 	LightClass(const LightClass&);
 	~LightClass();
 
+	void setAmbientColour(float r, float g, float b, float a);
 	void SetDiffuseColor(float, float, float, float);
 	void SetDirection(float, float, float);
 
+	D3DXVECTOR4 getAmbientColour() { return m_ambientColour; };
 	D3DXVECTOR4 GetDiffuseColor();
 	D3DXVECTOR3 GetDirection();
 
 private:
+	D3DXVECTOR4 m_ambientColour;
 	D3DXVECTOR4 m_diffuseColor;
 	D3DXVECTOR3 m_direction;
 };

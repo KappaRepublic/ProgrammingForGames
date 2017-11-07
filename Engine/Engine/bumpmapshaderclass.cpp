@@ -47,14 +47,14 @@ void BumpMapShaderClass::Shutdown()
 
 bool BumpMapShaderClass::Render(ID3D11DeviceContext* deviceContext, int indexCount, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix,
 	D3DXMATRIX projectionMatrix, ID3D11ShaderResourceView** textureArray, D3DXVECTOR3 lightDirection,
-	D3DXVECTOR4 diffuseColor)
+	D3DXVECTOR4 diffuseColor, D3DXVECTOR4 ambientColour)
 {
 	bool result;
 
 
 	// Set the shader parameters that it will use for rendering.
 	result = SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, textureArray, lightDirection,
-		diffuseColor);
+		diffuseColor, ambientColour);
 	if (!result)
 	{
 		return false;
@@ -338,7 +338,7 @@ void BumpMapShaderClass::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND
 bool BumpMapShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext, D3DXMATRIX worldMatrix,
 	D3DXMATRIX viewMatrix, D3DXMATRIX projectionMatrix,
 	ID3D11ShaderResourceView** textureArray, D3DXVECTOR3 lightDirection,
-	D3DXVECTOR4 diffuseColor)
+	D3DXVECTOR4 diffuseColor, D3DXVECTOR4 ambientColour)
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -390,6 +390,7 @@ bool BumpMapShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext,
 	dataPtr2 = (LightBufferType*)mappedResource.pData;
 
 	// Copy the lighting variables into the constant buffer.
+	dataPtr2->ambientColour = ambientColour;
 	dataPtr2->diffuseColor = diffuseColor;
 	dataPtr2->lightDirection = lightDirection;
 

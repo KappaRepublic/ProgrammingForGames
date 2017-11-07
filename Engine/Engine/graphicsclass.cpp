@@ -14,6 +14,9 @@ GraphicsClass::GraphicsClass()
 	m_bumpMapShader = 0;
 	m_fireShader = 0;
 	m_Light = 0;
+	m_text = 0;
+	m_ParticleShader = 0;
+	m_ParticleSystem = 0;
 }
 
 
@@ -30,7 +33,7 @@ GraphicsClass::~GraphicsClass()
 bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 {
 	bool result;
-
+	D3DXMATRIX baseViewMatrix;
 
 	// Create the Direct3D object.
 	m_D3D = new D3DClass;
@@ -54,6 +57,11 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 		return false;
 	}
 
+	// Initialize a base view matrix with the camera for 2D user interface rendering.
+	m_Camera->SetPosition(0.0f, 0.0f, -1.0f);
+	m_Camera->Render();
+	m_Camera->GetViewMatrix(baseViewMatrix);
+
 	// Set the initial position of the camera.
 	m_Camera->SetPosition(0.0f, 0.0f, -10.0f);
 	
@@ -64,8 +72,9 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 		return false;
 	}
 
+
 	// Initialize the model object.
-	result = m_Model->Initialize(m_D3D->GetDevice(), "../Engine/data/sphere.txt", L"../Engine/data/Wood_plancks_004_COLOR.jpg", L"../Engine/data/Wood_plancks_004_NRM.jpg", NULL);
+	result = m_Model->Initialize(m_D3D->GetDevice(), "../Engine/data/sphere.txt", L"../Engine/data/Sand 002_COLOR.jpg", L"../Engine/data/Sand 002_NRM.jpg", NULL);
 	if(!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the model object.", L"Error", MB_OK);
@@ -77,13 +86,27 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 		return false;
 	}
 
-	result = m_fire->Initialize(m_D3D->GetDevice(), "../Engine/data/sphere.txt", L"../Engine/data/water.jpg", L"../Engine/data/noise01.dds", L"../Engine/data/alpha01.dds");
+	result = m_fire->Initialize(m_D3D->GetDevice(), "../Engine/data/square.txt", L"../Engine/data/water.jpg", L"../Engine/data/noise01.dds", L"../Engine/data/alpha01.dds");
 	if (!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the fire object.", L"Error", MB_OK);
 		return false;
 	}
 
+	// Create the text object.
+	m_text = new TextClass;
+	if (!m_text)
+	{
+		return false;
+	}
+
+	// Initialize the text object.
+	result = m_text->Initialize(m_D3D->GetDevice(), m_D3D->GetDeviceContext(), hwnd, screenWidth, screenHeight, baseViewMatrix);
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the text object.", L"Error", MB_OK);
+		return false;
+	}
 
 	// Create the light shader object.
 	m_LightShader = new LightShaderClass;
@@ -131,8 +154,38 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	}
 
 	// Initialize the light object.
+	m_Light->setAmbientColour(0.2f, 0.2f, 0.2f, 1.0f);
 	m_Light->SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
 	m_Light->SetDirection(1.0f, 0.0f, 1.0f);
+
+	// Create the particle shader object.
+	m_ParticleShader = new ParticleShaderClass;
+	if (!m_ParticleShader)
+	{
+		return false;
+	}
+
+	// Initialize the particle shader object.
+	result = m_ParticleShader->Initialize(m_D3D->GetDevice(), hwnd);
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the particle shader object.", L"Error", MB_OK);
+		return false;
+	}
+
+	// Create the particle system object.
+	m_ParticleSystem = new ParticleSystemClass;
+	if (!m_ParticleSystem)
+	{
+		return false;
+	}
+
+	// Initialize the particle system object.
+	result = m_ParticleSystem->Initialize(m_D3D->GetDevice(), L"../Engine/data/star.dds");
+	if (!result)
+	{
+		return false;
+	}
 
 	return true;
 }
@@ -145,6 +198,30 @@ void GraphicsClass::Shutdown()
 	{
 		delete m_Light;
 		m_Light = 0;
+	}
+
+	// Release the particle system object.
+	if (m_ParticleSystem)
+	{
+		m_ParticleSystem->Shutdown();
+		delete m_ParticleSystem;
+		m_ParticleSystem = 0;
+	}
+
+	// Release the particle shader object.
+	if (m_ParticleShader)
+	{
+		m_ParticleShader->Shutdown();
+		delete m_ParticleShader;
+		m_ParticleShader = 0;
+	}
+
+	// Release the text object.
+	if (m_text)
+	{
+		m_text->Shutdown();
+		delete m_text;
+		m_text = 0;
 	}
 
 	// Release the light shader object.
@@ -204,12 +281,28 @@ void GraphicsClass::Shutdown()
 }
 
 
-bool GraphicsClass::Frame()
+bool GraphicsClass::Frame(int fps, int cpu, float frameTime)
 {
 	bool result;
 	static float rotation = 0.0f;
 	static float delta =0.0f;
 
+	// Run the frame processing for the particle system.
+	m_ParticleSystem->Frame(frameTime, m_D3D->GetDeviceContext());
+
+	// Set the frames per second.
+	result = m_text->SetFps(fps, m_D3D->GetDeviceContext());
+	if (!result)
+	{
+		return false;
+	}
+
+	// Set the cpu usage.
+	result = m_text->SetCpu(cpu, m_D3D->GetDeviceContext());
+	if (!result)
+	{
+		return false;
+	}
 
 	// Update the rotation variable each frame.
 	rotation += (float)D3DX_PI * 0.01f;
@@ -238,7 +331,7 @@ bool GraphicsClass::Frame()
 
 bool GraphicsClass::Render(float rotation, float deltavalue)
 {
-	D3DXMATRIX worldMatrix, viewMatrix, projectionMatrix;
+	D3DXMATRIX worldMatrix, viewMatrix, projectionMatrix, orthoMatrix;
 	bool result;
 	D3DXVECTOR3 scrollSpeeds, scales;
 	D3DXVECTOR2 distortion1, distortion2, distortion3;
@@ -267,8 +360,10 @@ bool GraphicsClass::Render(float rotation, float deltavalue)
 	distortionScale = 0.8f;
 	distortionBias = 0.5f;
 
+	m_Camera->SetRotation(0.0f, rotation, 0.0f);
+
 	// Clear the buffers to begin the scene.
-	m_D3D->BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
+	m_D3D->BeginScene(0.0f, 0.3f, 0.8f, 1.0f);
 
 	// Generate the view matrix based on the camera's position.
 	m_Camera->Render();
@@ -277,6 +372,44 @@ bool GraphicsClass::Render(float rotation, float deltavalue)
 	m_Camera->GetViewMatrix(viewMatrix);
 	m_D3D->GetWorldMatrix(worldMatrix);
 	m_D3D->GetProjectionMatrix(projectionMatrix);
+	m_D3D->GetOrthoMatrix(orthoMatrix);
+
+	// Turn off the Z buffer to begin all 2D rendering.
+	m_D3D->TurnZBufferOff();
+
+	// Turn on the alpha blending before rendering the text.
+	m_D3D->TurnOnAlphaBlending();
+
+	// Render the text strings.
+	result = m_text->Render(m_D3D->GetDeviceContext(), worldMatrix, orthoMatrix);
+	if (!result)
+	{
+		return false;
+	}
+
+	// Turn off alpha blending after rendering the text.
+	m_D3D->TurnOffAlphaBlending();
+
+	// Turn the Z buffer back on now that all 2D rendering has completed.
+	m_D3D->TurnZBufferOn();
+
+	D3DXMatrixTranslation(&worldMatrix, -3.0f, 2.0f, 0.0f);
+
+	// Turn on alpha blending.
+	m_D3D->TurnOnAlphaBlending();
+
+	// Put the particle system vertex and index buffers on the graphics pipeline to prepare them for drawing.
+	m_ParticleSystem->Render(m_D3D->GetDeviceContext());
+
+	// Render the model using the texture shader.
+	result = m_ParticleShader->Render(m_D3D->GetDeviceContext(), m_ParticleSystem->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix,
+		m_ParticleSystem->GetTexture());
+	if (!result)
+	{
+		return false;
+	}
+
+	m_D3D->TurnOffAlphaBlending();
 
 	// Turn on alpha blending for the fire transparency.
 	m_D3D->TurnOnAlphaBlending();
@@ -309,11 +442,12 @@ bool GraphicsClass::Render(float rotation, float deltavalue)
 
 	// Render the model using the light shader.
 	result = m_bumpMapShader->Render(m_D3D->GetDeviceContext(), m_Model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, 
-								   m_Model->GetTextureArray(), m_Light->GetDirection(), m_Light->GetDiffuseColor());
+								   m_Model->GetTextureArray(), m_Light->GetDirection(), m_Light->GetDiffuseColor(), m_Light->getAmbientColour());
 	if(!result)
 	{
 		return false;
 	}
+
 	
 
 	// Present the rendered scene to the screen.
