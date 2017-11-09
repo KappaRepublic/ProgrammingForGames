@@ -8,15 +8,19 @@ GraphicsClass::GraphicsClass()
 {
 	m_D3D = 0;
 	m_Camera = 0;
+	m_input = 0;
 	m_Model = 0;
+	m_bumpModel = 0;
 	m_fire = 0;
 	m_LightShader = 0;
 	m_bumpMapShader = 0;
+	m_specMapShader = 0;
 	m_fireShader = 0;
 	m_Light = 0;
 	m_text = 0;
 	m_ParticleShader = 0;
 	m_ParticleSystem = 0;
+	m_timer = 0;
 }
 
 
@@ -30,7 +34,7 @@ GraphicsClass::~GraphicsClass()
 }
 
 
-bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
+bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd, InputClass* input)
 {
 	bool result;
 	D3DXMATRIX baseViewMatrix;
@@ -50,6 +54,15 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 		return false;
 	}
 
+	// Create the timer class
+	m_timer = new TimerClass;
+	if (!m_timer) {
+		return false;
+	}
+
+	// Initialize the timer
+	m_timer->Initialize();
+
 	// Create the camera object.
 	m_Camera = new CameraClass;
 	if(!m_Camera)
@@ -59,12 +72,17 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 
 	// Initialize a base view matrix with the camera for 2D user interface rendering.
 	m_Camera->SetPosition(0.0f, 0.0f, -1.0f);
-	m_Camera->Render();
+	m_Camera->Render(m_timer->GetTime());
 	m_Camera->GetViewMatrix(baseViewMatrix);
+
+	// Create the input object
+	m_input = input;
 
 	// Set the initial position of the camera.
 	m_Camera->SetPosition(0.0f, 0.0f, -10.0f);
 	
+	
+
 	// Create the model object.
 	m_Model = new ModelClass;
 	if(!m_Model)
@@ -72,14 +90,24 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 		return false;
 	}
 
+	
 
 	// Initialize the model object.
-	result = m_Model->Initialize(m_D3D->GetDevice(), "../Engine/data/sphere.txt", L"../Engine/data/Sand 002_COLOR.jpg", L"../Engine/data/Sand 002_NRM.jpg", NULL);
+	result = m_Model->Initialize(m_D3D->GetDevice(), "../Engine/data/cube.txt", L"../Engine/data/Volcanic_glass_001_COLOR.png", L"../Engine/data/Volcanic_glass_001_NRM.png", 
+		L"../Engine/data/Volcanic_glass_001_SPEC.png");
 	if(!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the model object.", L"Error", MB_OK);
 		return false;
 	}
+
+	m_bumpModel = new ModelClass;
+	if (!m_bumpModel) {
+		return false;
+	}
+
+	result = m_bumpModel->Initialize(m_D3D->GetDevice(), "../Engine/data/sphere.txt", L"../Engine/data/Bronze_002_COLOR.png", L"../Engine/data/Bronze_002_NRM.png",
+		L"../Engine/data/Bronze_002_SPEC.png");
 
 	m_fire = new ModelClass;
 	if (!m_fire) {
@@ -146,6 +174,21 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 		MessageBox(hwnd, L"Could not initialize the Fire Shader Object", L"Error", MB_OK);
 	}
 
+	// Create the specular map shader object.
+	m_specMapShader = new SpecMapShaderClass;
+	if (!m_specMapShader)
+	{
+		return false;
+	}
+
+	// Initialize the specular map shader object.
+	result = m_specMapShader->Initialize(m_D3D->GetDevice(), hwnd);
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the specular map shader object.", L"Error", MB_OK);
+		return false;
+	}
+
 	// Create the light object.
 	m_Light = new LightClass;
 	if(!m_Light)
@@ -154,9 +197,11 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	}
 
 	// Initialize the light object.
-	m_Light->setAmbientColour(0.2f, 0.2f, 0.2f, 1.0f);
+	m_Light->setAmbientColour(0.2f, 0.2f, 0.2f, 0.3f);
 	m_Light->SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
 	m_Light->SetDirection(1.0f, 0.0f, 1.0f);
+	m_Light->SetSpecularColor(1.0f, 1.0f, 1.0f, 1.0f);
+	m_Light->SetSpecularPower(16.0f);
 
 	// Create the particle shader object.
 	m_ParticleShader = new ParticleShaderClass;
@@ -181,7 +226,7 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	}
 
 	// Initialize the particle system object.
-	result = m_ParticleSystem->Initialize(m_D3D->GetDevice(), L"../Engine/data/star.dds");
+	result = m_ParticleSystem->Initialize(m_D3D->GetDevice(), L"../Engine/data/smoke.png");
 	if (!result)
 	{
 		return false;
@@ -199,6 +244,21 @@ void GraphicsClass::Shutdown()
 		delete m_Light;
 		m_Light = 0;
 	}
+
+	// Release the input object
+	if (m_input) {
+		delete m_input;
+		m_input = 0;
+	}
+
+	// Release the specular map shader object.
+	if (m_specMapShader)
+	{
+		m_specMapShader->Shutdown();
+		delete m_specMapShader;
+		m_specMapShader = 0;
+	}
+
 
 	// Release the particle system object.
 	if (m_ParticleSystem)
@@ -254,6 +314,12 @@ void GraphicsClass::Shutdown()
 		m_Model = 0;
 	}
 
+	if (m_bumpModel) {
+		m_bumpModel->Shutdown();
+		delete m_bumpModel;
+		m_bumpModel = 0;
+	}
+
 	// Release the fire object
 
 	if (m_fire) {
@@ -287,6 +353,9 @@ bool GraphicsClass::Frame(int fps, int cpu, float frameTime)
 	static float rotation = 0.0f;
 	static float delta =0.0f;
 
+	// Update the timer
+	m_timer->Frame();
+
 	// Run the frame processing for the particle system.
 	m_ParticleSystem->Frame(frameTime, m_D3D->GetDeviceContext());
 
@@ -305,7 +374,7 @@ bool GraphicsClass::Frame(int fps, int cpu, float frameTime)
 	}
 
 	// Update the rotation variable each frame.
-	rotation += (float)D3DX_PI * 0.01f;
+	rotation += (float)D3DX_PI * 0.005f;
 	if(rotation > 360.0f)
 	{
 		rotation -= 360.0f;
@@ -317,6 +386,9 @@ bool GraphicsClass::Frame(int fps, int cpu, float frameTime)
 	{
 		delta -=1.0f;
 	}
+
+	// Update the camera
+	updateCamera();
 	
 	// Render the graphics scene.
 	result = Render(rotation, delta);
@@ -328,6 +400,27 @@ bool GraphicsClass::Frame(int fps, int cpu, float frameTime)
 	return true;
 }
 
+void GraphicsClass::updateCamera() {
+	if (m_input->getKeys().keyW) {
+		m_Camera->moveForward();
+	}
+	else if (m_input->getKeys().keyS) {
+		m_Camera->moveBackward();
+	}
+	if (m_input->getKeys().keyA) {
+		m_Camera->rotateLeft();
+	}
+	else if (m_input->getKeys().keyD) {
+		m_Camera->rotateRight();
+	}
+
+	if (m_input->getKeys().keyQ) {
+		m_Camera->moveUpward();
+	}
+	else if (m_input->getKeys().keyE) {
+		m_Camera->moveDownward();
+	}
+}
 
 bool GraphicsClass::Render(float rotation, float deltavalue)
 {
@@ -360,13 +453,13 @@ bool GraphicsClass::Render(float rotation, float deltavalue)
 	distortionScale = 0.8f;
 	distortionBias = 0.5f;
 
-	m_Camera->SetRotation(0.0f, rotation, 0.0f);
+	// m_Camera->SetRotation(0.0f, rotation, 0.0f);
 
 	// Clear the buffers to begin the scene.
 	m_D3D->BeginScene(0.0f, 0.3f, 0.8f, 1.0f);
 
 	// Generate the view matrix based on the camera's position.
-	m_Camera->Render();
+	m_Camera->Render(m_timer->GetTime());
 
 	// Get the world, view, and projection matrices from the camera and d3d objects.
 	m_Camera->GetViewMatrix(viewMatrix);
@@ -431,9 +524,6 @@ bool GraphicsClass::Render(float rotation, float deltavalue)
 	// Turn off alpha blending.
 	m_D3D->TurnOffAlphaBlending();
 
-	
-	
-
 	// Rotate the world matrix by the rotation value so that the triangle will spin.
 	D3DXMatrixRotationY(&worldMatrix, rotation);
 
@@ -441,13 +531,20 @@ bool GraphicsClass::Render(float rotation, float deltavalue)
 	m_Model->Render(m_D3D->GetDeviceContext());
 
 	// Render the model using the light shader.
-	result = m_bumpMapShader->Render(m_D3D->GetDeviceContext(), m_Model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, 
-								   m_Model->GetTextureArray(), m_Light->GetDirection(), m_Light->GetDiffuseColor(), m_Light->getAmbientColour());
+	result = m_specMapShader->Render(m_D3D->GetDeviceContext(), m_Model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, 
+								   m_Model->GetTextureArray(), m_Light->GetDirection(), m_Light->GetDiffuseColor(), m_Camera->GetPosition(),
+									m_Light->GetSpecularColor(), m_Light->GetSpecularPower());
 	if(!result)
 	{
 		return false;
 	}
 
+	D3DXMatrixTranslation(&worldMatrix, 0.0f, 2.5f, 0.0f);
+
+	m_bumpModel->Render(m_D3D->GetDeviceContext());
+
+	result = m_bumpMapShader->Render(m_D3D->GetDeviceContext(), m_bumpModel->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix,
+		m_bumpModel->GetTextureArray(), m_Light->GetDirection(), m_Light->GetDiffuseColor(), m_Light->getAmbientColour());
 	
 
 	// Present the rendered scene to the screen.

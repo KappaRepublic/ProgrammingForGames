@@ -96,6 +96,9 @@
     <ClCompile Include="ParticleShaderClass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="SpecShaderClass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cameraclass.h">
@@ -167,6 +170,9 @@
     <ClInclude Include="KeyInput.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="SpecShaderClass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="light.ps">
@@ -197,6 +203,12 @@
       <Filter>Shader Files</Filter>
     </None>
     <None Include="particle.vs">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="spec.vs">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="spec.ps">
       <Filter>Shader Files</Filter>
     </None>
   </ItemGroup>

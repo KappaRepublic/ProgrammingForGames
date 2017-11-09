@@ -98,6 +98,7 @@
     <ClCompile Include="ParticleShaderClass.cpp" />
     <ClCompile Include="ParticleSystemClass.cpp" />
     <ClCompile Include="soundclass.cpp" />
+    <ClCompile Include="SpecShaderClass.cpp" />
     <ClCompile Include="systemclass.cpp" />
     <ClCompile Include="textclass.cpp" />
     <ClCompile Include="TextureArray.cpp" />
@@ -123,6 +124,7 @@
     <ClInclude Include="ParticleShaderClass.h" />
     <ClInclude Include="ParticleSystemClass.h" />
     <ClInclude Include="soundclass.h" />
+    <ClInclude Include="SpecShaderClass.h" />
     <ClInclude Include="systemclass.h" />
     <ClInclude Include="textclass.h" />
     <ClInclude Include="TextureArray.h" />
@@ -152,6 +154,8 @@
     </None>
     <None Include="particle.ps" />
     <None Include="particle.vs" />
+    <None Include="spec.ps" />
+    <None Include="spec.vs" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

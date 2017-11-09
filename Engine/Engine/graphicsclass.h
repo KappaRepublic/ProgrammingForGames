@@ -14,8 +14,11 @@
 #include "lightshaderclass.h"
 #include "bumpmapshaderclass.h"
 #include "FireShaderClass.h"
+#include "SpecShaderClass.h"
 #include "lightclass.h"
 #include "textclass.h"
+#include "timerclass.h"
+#include "KeyInput.h"
 
 #include "ParticleShaderClass.h"
 #include "ParticleSystemClass.h"
@@ -40,23 +43,28 @@ public:
 	GraphicsClass(const GraphicsClass&);
 	~GraphicsClass();
 
-	bool Initialize(int, int, HWND);
+	bool Initialize(int screenWidth, int screenHeight, HWND hwnd, InputClass* input);
 	void Shutdown();
 	bool Frame(int fps, int cpu, float frameTime);
 
 private:
+	void updateCamera();
 	bool Render(float, float);
 
 private:
 	D3DClass* m_D3D;
+	InputClass* m_input;
 	CameraClass* m_Camera;
 	ModelClass* m_Model;
+	ModelClass* m_bumpModel;
 	ModelClass* m_fire;
 	LightShaderClass* m_LightShader;
 	BumpMapShaderClass* m_bumpMapShader;
 	FireShaderClass* m_fireShader;
+	SpecMapShaderClass* m_specMapShader;
 	LightClass* m_Light;
 	TextClass* m_text;
+	TimerClass* m_timer;
 
 	ParticleShaderClass* m_ParticleShader;
 	ParticleSystemClass* m_ParticleSystem;

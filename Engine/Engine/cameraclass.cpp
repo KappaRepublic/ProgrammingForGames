@@ -13,6 +13,7 @@ CameraClass::CameraClass()
 	m_rotationX = 0.0f;
 	m_rotationY = 0.0f;
 	m_rotationZ = 0.0f;
+
 }
 
 
@@ -43,6 +44,82 @@ void CameraClass::SetRotation(float x, float y, float z)
 	return;
 }
 
+void CameraClass::moveForward() {
+	float radians;
+
+	// Update the forward movement based on the frame time
+	velocity = frameTime * 0.005f;
+
+	// Convert degrees to radians.
+	radians = m_rotationY * 0.0174532925f;
+
+	// Update the position.
+	m_positionX += sinf(radians) * velocity;
+	m_positionZ += cosf(radians) * velocity;
+}
+
+void CameraClass::moveBackward() {
+	float radians;
+
+	// Update the backward movement based on the frame time
+	velocity = frameTime * 0.005f;// *0.5f;
+
+	// Convert degrees to radians.
+	radians = m_rotationY * 0.0174532925f;
+
+	// Update the position.
+	m_positionX -= sinf(radians) * velocity;
+	m_positionZ -= cosf(radians) * velocity;
+}
+
+void CameraClass::moveUpward()
+{
+	// Update the upward movement based on the frame time
+	velocity = frameTime * 0.005f;// *0.5f;
+
+								// Update the height position.
+	m_positionY += velocity;
+}
+
+
+void CameraClass::moveDownward()
+{
+	// Update the downward movement based on the frame time
+	velocity = frameTime * 0.005f;// *0.5f;
+
+								// Update the height position.
+	m_positionY -= velocity;
+}
+
+void CameraClass::rotateLeft()
+{
+	// Update the left turn movement based on the frame time 
+	velocity = frameTime * 0.025f;
+
+	// Update the rotation.
+	m_rotationY -= velocity;
+
+	// Keep the rotation in the 0 to 360 range.
+	if (m_rotationY < 0.0f)
+	{
+		m_rotationY += 360.0f;
+	}
+}
+
+void CameraClass::rotateRight()
+{
+	// Update the left turn movement based on the frame time 
+	velocity = frameTime * 0.025f;
+
+	// Update the rotation.
+	m_rotationY += velocity;
+
+	// Keep the rotation in the 0 to 360 range.
+	if (m_rotationY > 360.0f)
+	{
+		m_rotationY -= 360.0f;
+	}
+}
 
 D3DXVECTOR3 CameraClass::GetPosition()
 {
@@ -56,12 +133,13 @@ D3DXVECTOR3 CameraClass::GetRotation()
 }
 
 
-void CameraClass::Render()
+void CameraClass::Render(float time)
 {
 	D3DXVECTOR3 up, position, lookAt;
 	float yaw, pitch, roll;
 	D3DXMATRIX rotationMatrix;
 
+	setFrameTime(time);
 
 	// Setup the vector that points upwards.
 	up.x = 0.0f;
