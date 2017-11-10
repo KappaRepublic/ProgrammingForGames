@@ -121,6 +121,37 @@ void CameraClass::rotateRight()
 	}
 }
 
+void CameraClass::rotateUpward()
+{
+	// Update the left turn movement based on the frame time 
+	velocity = frameTime * 0.025f;
+
+	// Update the rotation.
+	m_rotationX -= velocity;
+
+	// Keep the rotation in the 0 to 360 range.
+	if (m_rotationX < 0.0f)
+	{
+		m_rotationX += 360.0f;
+	}
+	
+}
+
+void CameraClass::rotateDownward()
+{
+	// Update the left turn movement based on the frame time 
+	velocity = frameTime * 0.025f;
+
+	// Update the rotation.
+	m_rotationX += velocity;
+
+	// Keep the rotation in the 0 to 360 range.
+	if (m_rotationX > 360.0f)
+	{
+		m_rotationX -= 360.0f;
+	}
+}
+
 D3DXVECTOR3 CameraClass::GetPosition()
 {
 	return D3DXVECTOR3(m_positionX, m_positionY, m_positionZ);

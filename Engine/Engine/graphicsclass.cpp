@@ -11,7 +11,9 @@ GraphicsClass::GraphicsClass()
 	m_input = 0;
 	m_Model = 0;
 	m_bumpModel = 0;
+	skyBox = 0;
 	m_fire = 0;
+	m_textureShader = 0;
 	m_LightShader = 0;
 	m_bumpMapShader = 0;
 	m_specMapShader = 0;
@@ -101,6 +103,18 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd, Inp
 		return false;
 	}
 
+	skyBox = new ModelClass;
+	if (!skyBox) {
+		return false;
+	}
+
+	result = skyBox->Initialize(m_D3D->GetDevice(), "../Engine/data/skybox.txt", L"../Engine/data/skyBoxTex.jpg", NULL, NULL);
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the model object.", L"Error", MB_OK);
+		return false;
+	}
+
 	m_bumpModel = new ModelClass;
 	if (!m_bumpModel) {
 		return false;
@@ -133,6 +147,19 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd, Inp
 	if (!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the text object.", L"Error", MB_OK);
+		return false;
+	}
+
+	// Create the texture shader object
+	m_textureShader = new TextureShaderClass;
+	if (!m_textureShader) {
+		return false;
+	}
+
+	// Initialize the texture shader object
+	result = m_textureShader->Initialize(m_D3D->GetDevice(), hwnd);
+	if (!result) {
+		MessageBox(hwnd, L"Could not initialize the texture shader object.", L"Error", MB_OK);
 		return false;
 	}
 
@@ -205,8 +232,7 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd, Inp
 
 	// Create the particle shader object.
 	m_ParticleShader = new ParticleShaderClass;
-	if (!m_ParticleShader)
-	{
+	if (!m_ParticleShader) {
 		return false;
 	}
 
@@ -227,7 +253,7 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd, Inp
 
 	// Initialize the particle system object.
 	// 0.5, 0.1, 2.0f
-	result = m_ParticleSystem->Initialize(m_D3D->GetDevice(), L"../Engine/data/divij_part.png", 32.0f, 32.0f, 32.0f, 1.0f, 0.4f, 50.0f, 10000);
+	result = m_ParticleSystem->Initialize(m_D3D->GetDevice(), L"../Engine/data/flare.png", 32.0f, 32.0f, 32.0f, 1.0f, 2.0f, 50.0f, 10000);
 	if (!result)
 	{
 		return false;
@@ -285,6 +311,13 @@ void GraphicsClass::Shutdown()
 		m_text = 0;
 	}
 
+	// Release the texture shader object
+	if (m_textureShader) {
+		m_textureShader->Shutdown();
+		delete m_textureShader;
+		m_textureShader = 0;
+	}
+
 	// Release the light shader object.
 	if(m_LightShader)
 	{
@@ -327,6 +360,13 @@ void GraphicsClass::Shutdown()
 		m_fire->Shutdown();
 		delete m_fire;
 		m_fire = 0;
+	}
+
+	// Release the skyboc
+	if (skyBox) {
+		skyBox->Shutdown();
+		delete skyBox;
+		skyBox = 0;
 	}
 
 	// Release the camera object.
@@ -421,6 +461,13 @@ void GraphicsClass::updateCamera() {
 	else if (m_input->getKeys().keyE) {
 		m_Camera->moveDownward();
 	}
+
+	if (m_input->getKeys().keyI) {
+		m_Camera->rotateUpward();
+	}
+	else if (m_input->getKeys().keyK) {
+		m_Camera->rotateDownward();
+	}
 }
 
 bool GraphicsClass::Render(float rotation, float deltavalue)
@@ -487,23 +534,26 @@ bool GraphicsClass::Render(float rotation, float deltavalue)
 	// Turn the Z buffer back on now that all 2D rendering has completed.
 	m_D3D->TurnZBufferOn();
 
+	// SKYBOX /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	m_D3D->TurnZBufferOn();
+
+	D3DXMatrixTranslation(&worldMatrix, m_Camera->GetPosition().x, m_Camera->GetPosition().y, m_Camera->GetPosition().z);
+
+	skyBox->Render(m_D3D->GetDeviceContext());
+
+	result = m_textureShader->Render(m_D3D->GetDeviceContext(), skyBox->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix,
+		skyBox->GetTextureArray()[0]);
+
+	m_D3D->TurnZBufferOff();
+
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
 	D3DXMatrixTranslation(&worldMatrix, -3.0f, 2.0f, 0.0f);
 
-	// Turn on alpha blending.
-	m_D3D->TurnOnAlphaBlending();
-
-	// Put the particle system vertex and index buffers on the graphics pipeline to prepare them for drawing.
-	m_ParticleSystem->Render(m_D3D->GetDeviceContext());
-
-	// Render the model using the texture shader.
-	result = m_ParticleShader->Render(m_D3D->GetDeviceContext(), m_ParticleSystem->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix,
-		m_ParticleSystem->GetTexture());
-	if (!result)
-	{
-		return false;
-	}
-
-	m_D3D->TurnOffAlphaBlending();
+	
 
 	// Turn on alpha blending for the fire transparency.
 	m_D3D->TurnOnAlphaBlending();
@@ -533,13 +583,14 @@ bool GraphicsClass::Render(float rotation, float deltavalue)
 
 	// Render the model using the light shader.
 	result = m_specMapShader->Render(m_D3D->GetDeviceContext(), m_Model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, 
-								   m_Model->GetTextureArray(), m_Light->GetDirection(), m_Light->GetDiffuseColor(), m_Camera->GetPosition(),
+								    m_Model->GetTextureArray(), m_Light->GetDirection(), m_Light->GetDiffuseColor(), m_Camera->GetPosition(),
 									m_Light->GetSpecularColor(), m_Light->GetSpecularPower());
 	if(!result)
 	{
 		return false;
 	}
 
+	
 	D3DXMatrixTranslation(&worldMatrix, 0.0f, 2.5f, 0.0f);
 
 	m_bumpModel->Render(m_D3D->GetDeviceContext());
@@ -547,6 +598,21 @@ bool GraphicsClass::Render(float rotation, float deltavalue)
 	result = m_bumpMapShader->Render(m_D3D->GetDeviceContext(), m_bumpModel->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix,
 		m_bumpModel->GetTextureArray(), m_Light->GetDirection(), m_Light->GetDiffuseColor(), m_Light->getAmbientColour());
 	
+	// Turn on alpha blending.
+	m_D3D->TurnOnAlphaBlending();
+
+	// Put the particle system vertex and index buffers on the graphics pipeline to prepare them for drawing.
+	m_ParticleSystem->Render(m_D3D->GetDeviceContext());
+
+	// Render the model using the texture shader.
+	result = m_ParticleShader->Render(m_D3D->GetDeviceContext(), m_ParticleSystem->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix,
+		m_ParticleSystem->GetTexture());
+	if (!result)
+	{
+		return false;
+	}
+
+	m_D3D->TurnOffAlphaBlending();
 
 	// Present the rendered scene to the screen.
 	m_D3D->EndScene();

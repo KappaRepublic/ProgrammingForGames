@@ -273,6 +273,23 @@ void InputClass::updateKeys() {
 	else {
 		keys.keyE = false;
 	}
+
+	if (m_keyboardState[DIK_I] & 0x80)
+	{
+		keys.keyI = true;
+	}
+	else {
+		keys.keyI = false;
+	}
+
+	if (m_keyboardState[DIK_K] & 0x80)
+	{
+		keys.keyK = true;
+	}
+	else {
+		keys.keyK = false;
+	}
+
 }
 
 bool InputClass::IsEscapePressed()

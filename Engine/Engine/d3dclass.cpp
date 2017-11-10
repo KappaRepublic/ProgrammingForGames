@@ -185,7 +185,7 @@ bool D3DClass::Initialize(int screenWidth, int screenHeight, bool vsync, HWND hw
 	// Set to full screen or windowed mode.
 	if(!fullscreen)
 	{
-		swapChainDesc.Windowed = false;
+		swapChainDesc.Windowed = true;
 	}
 	else
 	{

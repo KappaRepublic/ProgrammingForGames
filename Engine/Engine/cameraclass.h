@@ -35,6 +35,8 @@ public:
 	void moveDownward();
 	void rotateLeft();
 	void rotateRight();
+	void rotateUpward();
+	void rotateDownward();
 
 	D3DXVECTOR3 GetPosition();
 	D3DXVECTOR3 GetRotation();

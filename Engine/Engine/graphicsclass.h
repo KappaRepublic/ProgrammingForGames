@@ -15,6 +15,7 @@
 #include "bumpmapshaderclass.h"
 #include "FireShaderClass.h"
 #include "SpecShaderClass.h"
+#include "textureshaderclass.h"
 #include "lightclass.h"
 #include "textclass.h"
 #include "timerclass.h"
@@ -27,7 +28,7 @@
 /////////////
 // GLOBALS //
 /////////////
-const bool FULL_SCREEN = true;
+const bool FULL_SCREEN = false;
 const bool VSYNC_ENABLED = true;
 const float SCREEN_DEPTH = 1000.0f;
 const float SCREEN_NEAR = 0.1f;
@@ -58,6 +59,7 @@ private:
 	ModelClass* m_Model;
 	ModelClass* m_bumpModel;
 	ModelClass* m_fire;
+	TextureShaderClass* m_textureShader;
 	LightShaderClass* m_LightShader;
 	BumpMapShaderClass* m_bumpMapShader;
 	FireShaderClass* m_fireShader;
@@ -65,6 +67,9 @@ private:
 	LightClass* m_Light;
 	TextClass* m_text;
 	TimerClass* m_timer;
+
+	// Skybox
+	ModelClass* skyBox;
 
 	ParticleShaderClass* m_ParticleShader;
 	ParticleSystemClass* m_ParticleSystem;
