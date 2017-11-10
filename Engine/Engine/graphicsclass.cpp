@@ -226,7 +226,8 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd, Inp
 	}
 
 	// Initialize the particle system object.
-	result = m_ParticleSystem->Initialize(m_D3D->GetDevice(), L"../Engine/data/smoke.png");
+	// 0.5, 0.1, 2.0f
+	result = m_ParticleSystem->Initialize(m_D3D->GetDevice(), L"../Engine/data/divij_part.png", 32.0f, 32.0f, 32.0f, 1.0f, 0.4f, 50.0f, 10000);
 	if (!result)
 	{
 		return false;

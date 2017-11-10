@@ -45,7 +45,7 @@ public:
 	ParticleSystemClass(const ParticleSystemClass&);
 	~ParticleSystemClass();
 
-	bool Initialize(ID3D11Device*, WCHAR*);
+	bool Initialize(ID3D11Device* device, WCHAR* textureFilename, float partDevX, float partDevY, float partDevZ, float partVel, float partSize, float partPerSecond, int maxParts);
 	void Shutdown();
 	bool Frame(float, ID3D11DeviceContext*);
 	void Render(ID3D11DeviceContext*);
@@ -57,7 +57,7 @@ private:
 	bool LoadTexture(ID3D11Device*, WCHAR*);
 	void ReleaseTexture();
 
-	bool InitializeParticleSystem();
+	bool InitializeParticleSystem(float partDevX, float partDevY, float partDevZ, float partVel, float partSize, float partPerSecond, int maxParts);
 	void ShutdownParticleSystem();
 
 	bool InitializeBuffers(ID3D11Device*);

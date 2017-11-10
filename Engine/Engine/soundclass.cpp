@@ -32,13 +32,13 @@ bool SoundClass::Initialize(HWND hwnd)
 	}
 
 	// Load a wave audio file onto a secondary buffer.
-	result = LoadWaveFile("../Engine/data/diredire.wav", &m_secondaryBuffer1);
+	result = LoadWaveFile("../Engine/data/komm.wav", &m_secondaryBuffer1);
 	if (!result)
 	{
 		return false;
 	}
 
-	/*
+	
 	// Play the wave file now that it has been loaded.
 	result = PlayWaveFile();
 	if (!result)
@@ -47,7 +47,7 @@ bool SoundClass::Initialize(HWND hwnd)
 	}
 
 	return true;
-	*/
+	
 }
 
 void SoundClass::Shutdown()

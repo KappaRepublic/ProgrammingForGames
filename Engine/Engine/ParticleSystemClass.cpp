@@ -22,7 +22,7 @@ ParticleSystemClass::~ParticleSystemClass()
 {
 }
 
-bool ParticleSystemClass::Initialize(ID3D11Device* device, WCHAR* textureFilename)
+bool ParticleSystemClass::Initialize(ID3D11Device* device, WCHAR* textureFilename, float partDevX, float partDevY, float partDevZ, float partVel, float partSize, float partPerSecond, int maxParts)
 {
 	bool result;
 
@@ -35,7 +35,7 @@ bool ParticleSystemClass::Initialize(ID3D11Device* device, WCHAR* textureFilenam
 	}
 
 	// Initialize the particle system.
-	result = InitializeParticleSystem();
+	result = InitializeParticleSystem(partDevX, partDevY, partDevZ, partVel, partSize, partPerSecond, maxParts);
 	if (!result)
 	{
 		return false;
@@ -142,27 +142,27 @@ void ParticleSystemClass::ReleaseTexture()
 	return;
 }
 
-bool ParticleSystemClass::InitializeParticleSystem()
+bool ParticleSystemClass::InitializeParticleSystem(float partDevX, float partDevY, float partDevZ, float partVel, float partSize, float partPerSecond, int maxParts)
 {
 	int i;
 
 	// Set the random deviation of where the particles can be located when emitted.
-	m_particleDeviationX = 0.5f;
-	m_particleDeviationY = 0.1f;
-	m_particleDeviationZ = 2.0f;
+	m_particleDeviationX = partDevX;
+	m_particleDeviationY = partDevY;
+	m_particleDeviationZ = partDevZ;
 
 	// Set the speed and speed variation of particles.
-	m_particleVelocity = 1.0f;
+	m_particleVelocity = partVel;
 	m_particleVelocityVariation = 0.2f;
 
 	// Set the physical size of the particles.
-	m_particleSize = 0.2f;
+	m_particleSize = partSize;
 
 	// Set the number of particles to emit per second.
-	m_particlesPerSecond = 250.0f;
+	m_particlesPerSecond = partPerSecond;
 
 	// Set the maximum number of particles allowed in the particle system.
-	m_maxParticles = 5000;
+	m_maxParticles = maxParts;
 
 	// Create the particle list.
 	m_particleList = new ParticleType[m_maxParticles];
