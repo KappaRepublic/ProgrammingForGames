@@ -148,12 +148,12 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd, Inp
 	result = m_bumpModel->Initialize(m_D3D->GetDevice(), "../Engine/data/laytonGold.txt", L"../Engine/data/gold.png", L"../Engine/data/Normal.png",
 		L"../Engine/data/Bronze_002_SPEC.png");
 
-	m_fire = new ModelClass;
+	m_fire = new Terrain;
 	if (!m_fire) {
 		return false;
 	}
 
-	result = m_fire->Initialize(m_D3D->GetDevice(), "../Engine/data/square.txt", L"../Engine/data/water.jpg", L"../Engine/data/noise01.dds", L"../Engine/data/alpha01.dds");
+	result = m_fire->initialize(m_D3D->GetDevice(), "../Engine/data/heightmap02.bmp", L"../Engine/data/water.png", L"../Engine/data/noise01.dds", L"../Engine/data/alpha01.dds", 100, 100);
 	if (!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the fire object.", L"Error", MB_OK);
@@ -675,7 +675,7 @@ void GraphicsClass::Shutdown()
 	// Release the fire object
 
 	if (m_fire) {
-		m_fire->Shutdown();
+		m_fire->shutDown();
 		delete m_fire;
 		m_fire = 0;
 	}
@@ -811,9 +811,7 @@ bool GraphicsClass::Render(float rotation, float deltavalue)
 
 	// Render the entire scene to the texture first.
 
-	/*
-
-	m_Camera->SetPosition(0.0f, 4.0f, 0.0f);
+	m_Camera->SetPosition(0.0f, 15.0f, 0.0f);
 	m_Camera->SetRotation(0.0f, 0.0f, 0.0f);
 
 	// Set the render target to be the render to texture.
@@ -894,7 +892,7 @@ bool GraphicsClass::Render(float rotation, float deltavalue)
 		return false;
 	}
 
-	*/
+	
 	
 
 	// m_D3D->GetDevice()->Render
@@ -908,7 +906,7 @@ bool GraphicsClass::Render(float rotation, float deltavalue)
 	m_D3D->BeginScene(0.0f, 0.3f, 0.8f, 1.0f);
 
 	// Render the scene as normal to the back buffer.
-	result = renderScene(rotation, true);
+	result = renderScene(rotation, true, true);
 	if (!result)
 	{
 		return false;
@@ -922,9 +920,9 @@ bool GraphicsClass::Render(float rotation, float deltavalue)
 	m_Camera->GetViewMatrix(viewMatrix);
 	m_D3D->GetOrthoMatrix(orthoMatrix);
 
-	/*
+	
 	// Put the debug window vertex and index buffers on the graphics pipeline to prepare them for drawing.
-	result = debugWindow1->Render(m_D3D->GetDeviceContext(), 50, 50);
+	result = debugWindow1->Render(m_D3D->GetDeviceContext(), 150, 150);
 	if (!result)
 	{
 		return false;
@@ -939,7 +937,7 @@ bool GraphicsClass::Render(float rotation, float deltavalue)
 	}
 
 	// Put the debug window vertex and index buffers on the graphics pipeline to prepare them for drawing.
-	result = debugWindow2->Render(m_D3D->GetDeviceContext(), 150, 50);
+	result = debugWindow2->Render(m_D3D->GetDeviceContext(), 250, 150);
 	if (!result)
 	{
 		return false;
@@ -954,7 +952,7 @@ bool GraphicsClass::Render(float rotation, float deltavalue)
 	}
 
 	// Put the debug window vertex and index buffers on the graphics pipeline to prepare them for drawing.
-	result = debugWindow3->Render(m_D3D->GetDeviceContext(), 250, 50);
+	result = debugWindow3->Render(m_D3D->GetDeviceContext(), 50, 150);
 	if (!result)
 	{
 		return false;
@@ -969,7 +967,7 @@ bool GraphicsClass::Render(float rotation, float deltavalue)
 	}
 
 	// Put the debug window vertex and index buffers on the graphics pipeline to prepare them for drawing.
-	result = debugWindow4->Render(m_D3D->GetDeviceContext(), 350, 50);
+	result = debugWindow4->Render(m_D3D->GetDeviceContext(), 350, 150);
 	if (!result)
 	{
 		return false;
@@ -984,7 +982,7 @@ bool GraphicsClass::Render(float rotation, float deltavalue)
 	}
 
 	// Put the debug window vertex and index buffers on the graphics pipeline to prepare them for drawing.
-	result = debugWindow5->Render(m_D3D->GetDeviceContext(), 450, 50);
+	result = debugWindow5->Render(m_D3D->GetDeviceContext(), 150, 250);
 	if (!result)
 	{
 		return false;
@@ -999,7 +997,7 @@ bool GraphicsClass::Render(float rotation, float deltavalue)
 	}
 
 	// Put the debug window vertex and index buffers on the graphics pipeline to prepare them for drawing.
-	result = debugWindow6->Render(m_D3D->GetDeviceContext(), 550, 50);
+	result = debugWindow6->Render(m_D3D->GetDeviceContext(), 150, 50);
 	if (!result)
 	{
 		return false;
@@ -1012,7 +1010,7 @@ bool GraphicsClass::Render(float rotation, float deltavalue)
 	{
 		return false;
 	}
-	*/
+	
 	
 	
 	// Turn the Z buffer back on now that all 2D rendering has completed.
@@ -1075,7 +1073,7 @@ bool GraphicsClass::renderToTexture(float rotation, int textureId) {
 	}
 
 	// Render the scene now and it will draw to the render to texture instead of the back buffer.
-	result = renderScene(rotation, false);
+	result = renderScene(rotation, false, false);
 	if (!result)
 	{
 		return false;
@@ -1087,8 +1085,10 @@ bool GraphicsClass::renderToTexture(float rotation, int textureId) {
 	return true;
 }
 
-bool GraphicsClass::renderScene(float rotation, bool drawText) {
+bool GraphicsClass::renderScene(float rotation, bool drawText, bool drawModel) {
 	D3DXMATRIX worldMatrix, viewMatrix, projectionMatrix, orthoMatrix;
+	D3DXMATRIX yRotation, translation;
+
 	bool result;
 	D3DXVECTOR3 scrollSpeeds, scales;
 	D3DXVECTOR2 distortion1, distortion2, distortion3;
@@ -1103,7 +1103,7 @@ bool GraphicsClass::renderScene(float rotation, bool drawText) {
 	}
 
 	// Set the three scrolling speeds for the three different noise textures.
-	scrollSpeeds = D3DXVECTOR3(1.3f, 2.1f, 2.3f);
+	scrollSpeeds = D3DXVECTOR3(0.3f, 0.6f, 0.3f);
 
 	// Set the three scales which will be used to create the three different noise octave textures.
 	scales = D3DXVECTOR3(1.0f, 2.0f, 3.0f);
@@ -1170,25 +1170,7 @@ bool GraphicsClass::renderScene(float rotation, bool drawText) {
 
 
 
-	// Turn on alpha blending for the fire transparency.
-	m_D3D->TurnOnAlphaBlending();
-
-	D3DXMatrixTranslation(&worldMatrix, 3.0f, 0.0f, 0.0f);
-
-	// Put the square model vertex and index buffers on the graphics pipeline to prepare them for drawing.
-	m_fire->Render(m_D3D->GetDeviceContext());
-
-	// Render the square model using the fire shader.
-	result = m_fireShader->Render(m_D3D->GetDeviceContext(), m_fire->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix,
-		m_fire->getTexture1(), m_fire->getTexture2(), m_fire->getTexture3(), frameTime, scrollSpeeds,
-		scales, distortion1, distortion2, distortion3, distortionScale, distortionBias);
-	if (!result)
-	{
-		return false;
-	}
-
-	// Turn off alpha blending.
-	m_D3D->TurnOffAlphaBlending();
+	
 
 	// Rotate the world matrix by the rotation value so that the triangle will spin.
 	D3DXMatrixRotationY(&worldMatrix, rotation);
@@ -1205,15 +1187,20 @@ bool GraphicsClass::renderScene(float rotation, bool drawText) {
 		return false;
 	}
 
-	D3DXMatrixTranslation(&worldMatrix, 0.0f, 2.5f, 0.0f);
+	// D3DXMatrixTranslation(&worldMatrix, 0.0f, 2.5f, 0.0f);
 
-	// Rotate the world matrix by the rotation value so that the triangle will spin.
-	D3DXMatrixRotationY(&worldMatrix, rotation);
+	if (drawModel) {
+		// Rotate the world matrix by the rotation value so that the triangle will spin.
+		D3DXMatrixRotationY(&yRotation, rotation);
+		D3DXMatrixTranslation(&translation, 0.0f, 3.0f, 50.0f);
 
-	m_bumpModel->Render(m_D3D->GetDeviceContext());
+		D3DXMatrixMultiply(&worldMatrix, &yRotation, &translation);
 
-	result = m_bumpMapShader->Render(m_D3D->GetDeviceContext(), m_bumpModel->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix,
-		m_bumpModel->GetTextureArray(), m_Light->GetDirection(), m_Light->GetDiffuseColor(), m_Light->getAmbientColour());
+		m_bumpModel->Render(m_D3D->GetDeviceContext());
+
+		result = m_bumpMapShader->Render(m_D3D->GetDeviceContext(), m_bumpModel->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix,
+			m_bumpModel->GetTextureArray(), m_Light->GetDirection(), m_Light->GetDiffuseColor(), m_Light->getAmbientColour());
+	}
 
 	// Render the terrain
 	D3DXMatrixTranslation(&worldMatrix, -100.0f, -6.0f, -100.0f);
@@ -1225,6 +1212,28 @@ bool GraphicsClass::renderScene(float rotation, bool drawText) {
 	if (!result) {
 		return false;
 	}
+
+	
+
+	// Turn on alpha blending for the fire transparency.
+	m_D3D->TurnOnAlphaBlending();
+
+	D3DXMatrixTranslation(&worldMatrix, -100.0f, -3.0f, -100.0f);
+
+	// Put the square model vertex and index buffers on the graphics pipeline to prepare them for drawing.
+	m_fire->render(m_D3D->GetDeviceContext());
+
+	// Render the square model using the fire shader.
+	result = m_fireShader->Render(m_D3D->GetDeviceContext(), m_fire->getIndexCount(), worldMatrix, viewMatrix, projectionMatrix,
+		m_fire->getGrassTexture(), m_fire->getSlopeTexture(), m_fire->getRockTexture(), frameTime, scrollSpeeds,
+		scales, distortion1, distortion2, distortion3, distortionScale, distortionBias);
+	if (!result)
+	{
+		return false;
+	}
+
+	// Turn off alpha blending.
+	m_D3D->TurnOffAlphaBlending();
 
 	// Turn on alpha blending.
 	m_D3D->TurnOnAlphaBlending();

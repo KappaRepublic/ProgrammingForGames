@@ -55,7 +55,7 @@ public:
 
 private:
 	bool renderToTexture(float rotation, int textureId);
-	bool renderScene(float rotation, bool drawText);
+	bool renderScene(float rotation, bool drawText, bool drawModel);
 
 	void updateCamera();
 	void createEnvironmentMap();
@@ -67,7 +67,7 @@ private:
 	CameraClass* m_Camera;
 	ModelClass* m_Model;
 	ModelClass* m_bumpModel;
-	ModelClass* m_fire;
+	Terrain* m_fire;
 	TextureShaderClass* m_textureShader;
 	LightShaderClass* m_LightShader;
 	BumpMapShaderClass* m_bumpMapShader;
