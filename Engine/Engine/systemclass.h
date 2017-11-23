@@ -20,11 +20,11 @@
 ///////////////////////
 // MY CLASS INCLUDES //
 ///////////////////////
-#include "inputclass.h"
+#include "InputSystem.h"
 #include "graphicsclass.h"
 #include "soundclass.h"
-#include "cpuclass.h"
-#include "fpsclass.h"
+#include "CPUTracker.h"
+#include "FPSTracker.h"
 #include "timerclass.h"
 
 
@@ -54,12 +54,12 @@ private:
 	HINSTANCE m_hinstance;
 	HWND m_hwnd;
 
-	InputClass* m_Input;
+	InputSystem* m_Input;
 	GraphicsClass* m_Graphics;
 	SoundClass* m_sound;
 
-	FpsClass* m_Fps;
-	CpuClass* m_Cpu;
+	FPSTracker* m_Fps;
+	CPUTracker* m_Cpu;
 	TimerClass* m_Timer;
 };
 

@@ -18,11 +18,28 @@ GraphicsClass::GraphicsClass()
 	m_bumpMapShader = 0;
 	m_specMapShader = 0;
 	m_fireShader = 0;
+	m_terrainShader = 0;
 	m_Light = 0;
 	m_text = 0;
 	m_ParticleShader = 0;
 	m_ParticleSystem = 0;
 	m_timer = 0;
+
+	renderTexture1 = 0;
+	renderTexture2 = 0;
+	renderTexture3 = 0;
+	renderTexture4 = 0;
+	renderTexture5 = 0;
+	renderTexture6 = 0;
+
+	debugWindow1 = 0;
+	debugWindow2 = 0;
+	debugWindow3 = 0;
+	debugWindow4 = 0;
+	debugWindow5 = 0;
+	debugWindow6 = 0;
+	test = 0;
+	terrain = 0;
 }
 
 
@@ -36,7 +53,7 @@ GraphicsClass::~GraphicsClass()
 }
 
 
-bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd, InputClass* input)
+bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd, InputSystem* input)
 {
 	bool result;
 	D3DXMATRIX baseViewMatrix;
@@ -92,14 +109,22 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd, Inp
 		return false;
 	}
 
-	
-
 	// Initialize the model object.
-	result = m_Model->Initialize(m_D3D->GetDevice(), "../Engine/data/cube.txt", L"../Engine/data/Volcanic_glass_001_COLOR.png", L"../Engine/data/Volcanic_glass_001_NRM.png", 
+	result = m_Model->Initialize(m_D3D->GetDevice(), "../Engine/data/sphere.txt", L"../Engine/data/Volcanic_glass_001_COLOR.png", L"../Engine/data/Volcanic_glass_001_NRM.png", 
 		L"../Engine/data/Volcanic_glass_001_SPEC.png");
 	if(!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the model object.", L"Error", MB_OK);
+		return false;
+	}
+
+	test = new ModelClass;
+	if (!test) {
+		return false;
+	}
+
+	result = test->Initialize(m_D3D->GetDevice(), "../Engine/data/square.txt", L"../Engine/data/SkyBoxTex.jpg", NULL, NULL);
+	if (!result) {
 		return false;
 	}
 
@@ -108,7 +133,7 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd, Inp
 		return false;
 	}
 
-	result = skyBox->Initialize(m_D3D->GetDevice(), "../Engine/data/skybox.txt", L"../Engine/data/skyBoxTex.jpg", NULL, NULL);
+	result = skyBox->Initialize(m_D3D->GetDevice(), "../Engine/data/skybox.txt", L"../Engine/data/SkyBoxTex.jpg", NULL, NULL);
 	if (!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the model object.", L"Error", MB_OK);
@@ -120,7 +145,7 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd, Inp
 		return false;
 	}
 
-	result = m_bumpModel->Initialize(m_D3D->GetDevice(), "../Engine/data/sphere.txt", L"../Engine/data/Bronze_002_COLOR.png", L"../Engine/data/Bronze_002_NRM.png",
+	result = m_bumpModel->Initialize(m_D3D->GetDevice(), "../Engine/data/laytonGold.txt", L"../Engine/data/gold.png", L"../Engine/data/Normal.png",
 		L"../Engine/data/Bronze_002_SPEC.png");
 
 	m_fire = new ModelClass;
@@ -217,7 +242,7 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd, Inp
 	}
 
 	// Create the light object.
-	m_Light = new LightClass;
+	m_Light = new Light;
 	if(!m_Light)
 	{
 		return false;
@@ -226,7 +251,7 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd, Inp
 	// Initialize the light object.
 	m_Light->setAmbientColour(0.2f, 0.2f, 0.2f, 0.3f);
 	m_Light->SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
-	m_Light->SetDirection(1.0f, 0.0f, 1.0f);
+	m_Light->SetDirection(0.5f, -1.0f, 0.0f);
 	m_Light->SetSpecularColor(1.0f, 1.0f, 1.0f, 1.0f);
 	m_Light->SetSpecularPower(16.0f);
 
@@ -253,9 +278,205 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd, Inp
 
 	// Initialize the particle system object.
 	// 0.5, 0.1, 2.0f
-	result = m_ParticleSystem->Initialize(m_D3D->GetDevice(), L"../Engine/data/flare.png", 32.0f, 32.0f, 32.0f, 1.0f, 2.0f, 50.0f, 10000);
+	result = m_ParticleSystem->Initialize(m_D3D->GetDevice(), L"../Engine/data/flare.png", 320.0f, 320.0f, 320.0f, 1.0f, 2.0f, 10.0f, 100000);
 	if (!result)
 	{
+		return false;
+	}
+
+	// Create the render to texture object.
+	renderTexture1 = new RenderTexture;
+	if (!renderTexture1)
+	{
+		return false;
+	}
+
+	// Initialize the render to texture object.
+	result = renderTexture1->initialize(m_D3D->GetDevice(), screenWidth, screenHeight);
+	if (!result)
+	{
+		return false;
+	}
+	// Create the render to texture object.
+	renderTexture2 = new RenderTexture;
+	if (!renderTexture2)
+	{
+		return false;
+	}
+
+	// Initialize the render to texture object.
+	result = renderTexture2->initialize(m_D3D->GetDevice(), screenWidth, screenHeight);
+	if (!result)
+	{
+		return false;
+	}
+
+	// Create the render to texture object.
+	renderTexture3 = new RenderTexture;
+	if (!renderTexture3)
+	{
+		return false;
+	}
+
+	// Initialize the render to texture object.
+	result = renderTexture3->initialize(m_D3D->GetDevice(), screenWidth, screenHeight);
+	if (!result)
+	{
+		return false;
+	}
+
+	// Create the render to texture object.
+	renderTexture4 = new RenderTexture;
+	if (!renderTexture4)
+	{
+		return false;
+	}
+
+	// Initialize the render to texture object.
+	result = renderTexture4->initialize(m_D3D->GetDevice(), screenWidth, screenHeight);
+	if (!result)
+	{
+		return false;
+	}
+
+	// Create the render to texture object.
+	renderTexture5 = new RenderTexture;
+	if (!renderTexture5)
+	{
+		return false;
+	}
+
+	// Initialize the render to texture object.
+	result = renderTexture5->initialize(m_D3D->GetDevice(), screenWidth, screenHeight);
+	if (!result)
+	{
+		return false;
+	}
+
+	// Create the render to texture object.
+	renderTexture6 = new RenderTexture;
+	if (!renderTexture6)
+	{
+		return false;
+	}
+
+	// Initialize the render to texture object.
+	result = renderTexture6->initialize(m_D3D->GetDevice(), screenWidth, screenHeight);
+	if (!result)
+	{
+		return false;
+	}
+
+
+	// Create the debug window object.
+	debugWindow1 = new DebugWindowClass;
+	if (!debugWindow1)
+	{
+		return false;
+	}
+
+	// Initialize the debug window object.
+	result = debugWindow1->Initialize(m_D3D->GetDevice(), screenWidth, screenHeight, 100, 100);
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the debug window object.", L"Error", MB_OK);
+		return false;
+	}
+
+	debugWindow2 = new DebugWindowClass;
+	if (!debugWindow2)
+	{
+		return false;
+	}
+
+	// Initialize the debug window object.
+	result = debugWindow2->Initialize(m_D3D->GetDevice(), screenWidth, screenHeight, 100, 100);
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the debug window object.", L"Error", MB_OK);
+		return false;
+	}
+
+	debugWindow3 = new DebugWindowClass;
+	if (!debugWindow3)
+	{
+		return false;
+	}
+
+	// Initialize the debug window object.
+	result = debugWindow3->Initialize(m_D3D->GetDevice(), screenWidth, screenHeight, 100, 100);
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the debug window object.", L"Error", MB_OK);
+		return false;
+	}
+
+	debugWindow4 = new DebugWindowClass;
+	if (!debugWindow4)
+	{
+		return false;
+	}
+
+	// Initialize the debug window object.
+	result = debugWindow4->Initialize(m_D3D->GetDevice(), screenWidth, screenHeight, 100, 100);
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the debug window object.", L"Error", MB_OK);
+		return false;
+	}
+
+	debugWindow5 = new DebugWindowClass;
+	if (!debugWindow5)
+	{
+		return false;
+	}
+
+	// Initialize the debug window object.
+	result = debugWindow5->Initialize(m_D3D->GetDevice(), screenWidth, screenHeight, 100, 100);
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the debug window object.", L"Error", MB_OK);
+		return false;
+	}
+
+	debugWindow6 = new DebugWindowClass;
+	if (!debugWindow6)
+	{
+		return false;
+	}
+
+	// Initialize the debug window object.
+	result = debugWindow6->Initialize(m_D3D->GetDevice(), screenWidth, screenHeight, 100, 100);
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the debug window object.", L"Error", MB_OK);
+		return false;
+	}
+
+
+	// Initialize the terrain class 
+	terrain = new Terrain;
+	if (!terrain) {
+		return false;
+	}
+
+	result = terrain->initialize(m_D3D->GetDevice(), "../Engine/data/heightmap01.bmp", L"../Engine/data/Rough_rock_012_COLOR.jpg", L"../Engine/data/slope.dds", L"../Engine/data/rock.dds", 100, 100);
+	if (!result) {
+		MessageBox(hwnd, L"Could not initialize the terrain object.", L"Error", MB_OK);
+		return false;
+	}
+
+	// Create the terrain shader object
+
+	m_terrainShader = new TerrainShader;
+	if (!m_terrainShader) {
+		return false;
+	}
+	 
+	// Initialize the terrain shader object
+	result = m_terrainShader->initialize(m_D3D->GetDevice(), hwnd);
+	if (!result) {
+		MessageBox(hwnd, L"Could not initialize the terrain shader object", L"Error", MB_OK);
 		return false;
 	}
 
@@ -270,6 +491,103 @@ void GraphicsClass::Shutdown()
 	{
 		delete m_Light;
 		m_Light = 0;
+	}
+
+	// Release the terrain shader object
+	if (m_terrainShader) {
+		m_terrainShader->shutDown();
+		delete m_terrainShader;
+		m_terrainShader = 0;
+	}
+
+	// Release the debug window object.
+	if (debugWindow1)
+	{
+		debugWindow1->Shutdown();
+		delete debugWindow1;
+		debugWindow1 = 0;
+	}
+
+	if (debugWindow2)
+	{
+		debugWindow2->Shutdown();
+		delete debugWindow2;
+		debugWindow2 = 0;
+	}
+
+	if (debugWindow3)
+	{
+		debugWindow3->Shutdown();
+		delete debugWindow3;
+		debugWindow3 = 0;
+	}
+
+	if (debugWindow4)
+	{
+		debugWindow4->Shutdown();
+		delete debugWindow4;
+		debugWindow4 = 0;
+	}
+
+	if (debugWindow5)
+	{
+		debugWindow5->Shutdown();
+		delete debugWindow5;
+		debugWindow5 = 0;
+	}
+
+	if (debugWindow6)
+	{
+		debugWindow6->Shutdown();
+		delete debugWindow6;
+		debugWindow6 = 0;
+	}
+	// Release the render to texture object.
+	if (renderTexture1)
+	{
+		renderTexture1->shutDown();
+		delete renderTexture1;
+		renderTexture1 = 0;
+	}
+
+	// Release the render to texture object.
+	if (renderTexture2)
+	{
+		renderTexture2->shutDown();
+		delete renderTexture2;
+		renderTexture2 = 0;
+	}
+
+	// Release the render to texture object.
+	if (renderTexture3)
+	{
+		renderTexture3->shutDown();
+		delete renderTexture3;
+		renderTexture3 = 0;
+	}
+
+	// Release the render to texture object.
+	if (renderTexture4)
+	{
+		renderTexture4->shutDown();
+		delete renderTexture4;
+		renderTexture4 = 0;
+	}
+
+	// Release the render to texture object.
+	if (renderTexture5)
+	{
+		renderTexture5->shutDown();
+		delete renderTexture5;
+		renderTexture5 = 0;
+	}
+
+	// Release the render to texture object.
+	if (renderTexture6)
+	{
+		renderTexture6->shutDown();
+		delete renderTexture6;
+		renderTexture6 = 0;
 	}
 
 	// Release the input object
@@ -369,6 +687,12 @@ void GraphicsClass::Shutdown()
 		skyBox = 0;
 	}
 
+	if (test) {
+		test->Shutdown();
+		delete test;
+		test = 0;
+	}
+
 	// Release the camera object.
 	if(m_Camera)
 	{
@@ -392,7 +716,7 @@ bool GraphicsClass::Frame(int fps, int cpu, float frameTime)
 {
 	bool result;
 	static float rotation = 0.0f;
-	static float delta =0.0f;
+	static float delta = 0.0f;
 
 	// Update the timer
 	m_timer->Frame();
@@ -472,6 +796,298 @@ void GraphicsClass::updateCamera() {
 
 bool GraphicsClass::Render(float rotation, float deltavalue)
 {
+	D3DXMATRIX worldMatrix, viewMatrix, orthoMatrix;
+	bool result;
+
+	float tempPosX, tempPosY, tempPosZ, tempRotX, tempRotY, tempRotZ;
+
+	tempPosX = m_Camera->GetPosition().x;
+	tempPosY = m_Camera->GetPosition().y;
+	tempPosZ = m_Camera->GetPosition().z;
+
+	tempRotX = m_Camera->GetRotation().x;
+	tempRotY = m_Camera->GetRotation().y;
+	tempRotZ = m_Camera->GetRotation().z;
+
+	// Render the entire scene to the texture first.
+
+	/*
+
+	m_Camera->SetPosition(0.0f, 4.0f, 0.0f);
+	m_Camera->SetRotation(0.0f, 0.0f, 0.0f);
+
+	// Set the render target to be the render to texture.
+	renderTexture1->setRenderTarget(m_D3D->GetDeviceContext(), m_D3D->getDepthStencilView());
+
+	// Clear the render to texture.
+	renderTexture1->clearRenderTarget(m_D3D->GetDeviceContext(), m_D3D->getDepthStencilView(), 0.0f, 0.0f, 1.0f, 1.0f);
+
+	result = renderToTexture(rotation, 1);
+	if (!result)
+	{
+		return false;
+	}
+
+	m_Camera->SetRotation(0.0f, 90.0f, 0.0f);
+
+	// Set the render target to be the render to texture.
+	renderTexture2->setRenderTarget(m_D3D->GetDeviceContext(), m_D3D->getDepthStencilView());
+
+	// Clear the render to texture.
+	renderTexture2->clearRenderTarget(m_D3D->GetDeviceContext(), m_D3D->getDepthStencilView(), 0.0f, 0.0f, 1.0f, 1.0f);
+
+	result = renderToTexture(rotation, 2);
+	if (!result)
+	{
+		return false;
+	}
+
+	m_Camera->SetRotation(0.0f, 180.0f, 0.0f);
+
+	// Set the render target to be the render to texture.
+	renderTexture3->setRenderTarget(m_D3D->GetDeviceContext(), m_D3D->getDepthStencilView());
+
+	// Clear the render to texture.
+	renderTexture3->clearRenderTarget(m_D3D->GetDeviceContext(), m_D3D->getDepthStencilView(), 0.0f, 0.0f, 1.0f, 1.0f);
+
+	result = renderToTexture(rotation, 3);
+	if (!result)
+	{
+		return false;
+	}
+
+	m_Camera->SetRotation(0.0f, 270.0f, 0.0f);
+
+	// Set the render target to be the render to texture.
+	renderTexture4->setRenderTarget(m_D3D->GetDeviceContext(), m_D3D->getDepthStencilView());
+
+	// Clear the render to texture.
+	renderTexture4->clearRenderTarget(m_D3D->GetDeviceContext(), m_D3D->getDepthStencilView(), 0.0f, 0.0f, 1.0f, 1.0f);
+
+	result = renderToTexture(rotation, 4);
+	if (!result)
+	{
+		return false;
+	}
+
+	m_Camera->SetRotation(90.0f, 0.0f, 0.0f);
+
+	
+
+	result = renderToTexture(rotation, 5);
+	if (!result)
+	{
+		return false;
+	}
+
+	m_Camera->SetRotation(270.0f, 0.0f, 0.0f);
+
+	// Set the render target to be the render to texture.
+	renderTexture6->setRenderTarget(m_D3D->GetDeviceContext(), m_D3D->getDepthStencilView());
+
+	// Clear the render to texture.
+	renderTexture6->clearRenderTarget(m_D3D->GetDeviceContext(), m_D3D->getDepthStencilView(), 0.0f, 0.0f, 1.0f, 1.0f);
+
+	result = renderToTexture(rotation, 6);
+	if (!result)
+	{
+		return false;
+	}
+
+	*/
+	
+
+	// m_D3D->GetDevice()->Render
+	
+	m_Camera->SetPosition(tempPosX, tempPosY, tempPosZ);
+	m_Camera->SetRotation(tempRotX, tempRotY, tempRotZ);
+
+	// m_Camera->SetRotation(0.0f, rotation, 0.0f);
+
+	// Clear the buffers to begin the scene.
+	m_D3D->BeginScene(0.0f, 0.3f, 0.8f, 1.0f);
+
+	// Render the scene as normal to the back buffer.
+	result = renderScene(rotation, true);
+	if (!result)
+	{
+		return false;
+	}
+
+	// Turn off the Z buffer to begin all 2D rendering.
+	m_D3D->TurnZBufferOff();
+
+	// Get the world, view, and ortho matrices from the camera and d3d objects.
+	m_D3D->GetWorldMatrix(worldMatrix);
+	m_Camera->GetViewMatrix(viewMatrix);
+	m_D3D->GetOrthoMatrix(orthoMatrix);
+
+	/*
+	// Put the debug window vertex and index buffers on the graphics pipeline to prepare them for drawing.
+	result = debugWindow1->Render(m_D3D->GetDeviceContext(), 50, 50);
+	if (!result)
+	{
+		return false;
+	}
+
+	// Render the debug window using the texture shader.
+	result = m_textureShader->Render(m_D3D->GetDeviceContext(), debugWindow1->GetIndexCount(), worldMatrix, viewMatrix,
+		orthoMatrix, renderTexture1->getShaderResourceView());
+	if (!result)
+	{
+		return false;
+	}
+
+	// Put the debug window vertex and index buffers on the graphics pipeline to prepare them for drawing.
+	result = debugWindow2->Render(m_D3D->GetDeviceContext(), 150, 50);
+	if (!result)
+	{
+		return false;
+	}
+
+	// Render the debug window using the texture shader.
+	result = m_textureShader->Render(m_D3D->GetDeviceContext(), debugWindow2->GetIndexCount(), worldMatrix, viewMatrix,
+		orthoMatrix, renderTexture2->getShaderResourceView());
+	if (!result)
+	{
+		return false;
+	}
+
+	// Put the debug window vertex and index buffers on the graphics pipeline to prepare them for drawing.
+	result = debugWindow3->Render(m_D3D->GetDeviceContext(), 250, 50);
+	if (!result)
+	{
+		return false;
+	}
+
+	// Render the debug window using the texture shader.
+	result = m_textureShader->Render(m_D3D->GetDeviceContext(), debugWindow3->GetIndexCount(), worldMatrix, viewMatrix,
+		orthoMatrix, renderTexture3->getShaderResourceView());
+	if (!result)
+	{
+		return false;
+	}
+
+	// Put the debug window vertex and index buffers on the graphics pipeline to prepare them for drawing.
+	result = debugWindow4->Render(m_D3D->GetDeviceContext(), 350, 50);
+	if (!result)
+	{
+		return false;
+	}
+
+	// Render the debug window using the texture shader.
+	result = m_textureShader->Render(m_D3D->GetDeviceContext(), debugWindow4->GetIndexCount(), worldMatrix, viewMatrix,
+		orthoMatrix, renderTexture4->getShaderResourceView());
+	if (!result)
+	{
+		return false;
+	}
+
+	// Put the debug window vertex and index buffers on the graphics pipeline to prepare them for drawing.
+	result = debugWindow5->Render(m_D3D->GetDeviceContext(), 450, 50);
+	if (!result)
+	{
+		return false;
+	}
+
+	// Render the debug window using the texture shader.
+	result = m_textureShader->Render(m_D3D->GetDeviceContext(), debugWindow5->GetIndexCount(), worldMatrix, viewMatrix,
+		orthoMatrix, renderTexture5->getShaderResourceView());
+	if (!result)
+	{
+		return false;
+	}
+
+	// Put the debug window vertex and index buffers on the graphics pipeline to prepare them for drawing.
+	result = debugWindow6->Render(m_D3D->GetDeviceContext(), 550, 50);
+	if (!result)
+	{
+		return false;
+	}
+
+	// Render the debug window using the texture shader.
+	result = m_textureShader->Render(m_D3D->GetDeviceContext(), debugWindow6->GetIndexCount(), worldMatrix, viewMatrix,
+		orthoMatrix, renderTexture6->getShaderResourceView());
+	if (!result)
+	{
+		return false;
+	}
+	*/
+	
+	
+	// Turn the Z buffer back on now that all 2D rendering has completed.
+	m_D3D->TurnZBufferOn();
+
+	// Present the rendered scene to the screen.
+	m_D3D->EndScene();
+
+	return true;
+}
+
+bool GraphicsClass::renderToTexture(float rotation, int textureId) {
+	bool result;
+
+	switch (textureId) {
+	case 1:
+		// Set the render target to be the render to texture.
+		renderTexture1->setRenderTarget(m_D3D->GetDeviceContext(), m_D3D->getDepthStencilView());
+
+		// Clear the render to texture.
+		renderTexture1->clearRenderTarget(m_D3D->GetDeviceContext(), m_D3D->getDepthStencilView(), 0.0f, 0.0f, 1.0f, 1.0f);
+		break;
+	case 2:
+		// Set the render target to be the render to texture.
+		renderTexture2->setRenderTarget(m_D3D->GetDeviceContext(), m_D3D->getDepthStencilView());
+
+		// Clear the render to texture.
+		renderTexture2->clearRenderTarget(m_D3D->GetDeviceContext(), m_D3D->getDepthStencilView(), 0.0f, 0.0f, 1.0f, 1.0f);
+		break;
+	case 3:
+		// Set the render target to be the render to texture.
+		renderTexture3->setRenderTarget(m_D3D->GetDeviceContext(), m_D3D->getDepthStencilView());
+
+		// Clear the render to texture.
+		renderTexture3->clearRenderTarget(m_D3D->GetDeviceContext(), m_D3D->getDepthStencilView(), 0.0f, 0.0f, 1.0f, 1.0f);
+		break;
+	case 4:
+		// Set the render target to be the render to texture.
+		renderTexture4->setRenderTarget(m_D3D->GetDeviceContext(), m_D3D->getDepthStencilView());
+
+		// Clear the render to texture.
+		renderTexture4->clearRenderTarget(m_D3D->GetDeviceContext(), m_D3D->getDepthStencilView(), 0.0f, 0.0f, 1.0f, 1.0f);
+		break;
+	case 5:
+		// Set the render target to be the render to texture.
+		renderTexture5->setRenderTarget(m_D3D->GetDeviceContext(), m_D3D->getDepthStencilView());
+
+		// Clear the render to texture.
+		renderTexture5->clearRenderTarget(m_D3D->GetDeviceContext(), m_D3D->getDepthStencilView(), 0.0f, 0.0f, 1.0f, 1.0f);
+		break;
+	case 6:
+		// Set the render target to be the render to texture.
+		renderTexture6->setRenderTarget(m_D3D->GetDeviceContext(), m_D3D->getDepthStencilView());
+
+		// Clear the render to texture.
+		renderTexture6->clearRenderTarget(m_D3D->GetDeviceContext(), m_D3D->getDepthStencilView(), 0.0f, 0.0f, 1.0f, 1.0f);
+		break;
+	default:
+		break;
+	}
+
+	// Render the scene now and it will draw to the render to texture instead of the back buffer.
+	result = renderScene(rotation, false);
+	if (!result)
+	{
+		return false;
+	}
+
+	// Reset the render target back to the original back buffer and not the render to texture anymore.
+	m_D3D->setBackBufferRenderTarget();
+
+	return true;
+}
+
+bool GraphicsClass::renderScene(float rotation, bool drawText) {
 	D3DXMATRIX worldMatrix, viewMatrix, projectionMatrix, orthoMatrix;
 	bool result;
 	D3DXVECTOR3 scrollSpeeds, scales;
@@ -501,11 +1117,6 @@ bool GraphicsClass::Render(float rotation, float deltavalue)
 	distortionScale = 0.8f;
 	distortionBias = 0.5f;
 
-	// m_Camera->SetRotation(0.0f, rotation, 0.0f);
-
-	// Clear the buffers to begin the scene.
-	m_D3D->BeginScene(0.0f, 0.3f, 0.8f, 1.0f);
-
 	// Generate the view matrix based on the camera's position.
 	m_Camera->Render(m_timer->GetTime());
 
@@ -515,28 +1126,10 @@ bool GraphicsClass::Render(float rotation, float deltavalue)
 	m_D3D->GetProjectionMatrix(projectionMatrix);
 	m_D3D->GetOrthoMatrix(orthoMatrix);
 
-	// Turn off the Z buffer to begin all 2D rendering.
-	m_D3D->TurnZBufferOff();
-
-	// Turn on the alpha blending before rendering the text.
-	m_D3D->TurnOnAlphaBlending();
-
-	// Render the text strings.
-	result = m_text->Render(m_D3D->GetDeviceContext(), worldMatrix, orthoMatrix);
-	if (!result)
-	{
-		return false;
-	}
-
-	// Turn off alpha blending after rendering the text.
-	m_D3D->TurnOffAlphaBlending();
-
-	// Turn the Z buffer back on now that all 2D rendering has completed.
-	m_D3D->TurnZBufferOn();
 
 	// SKYBOX /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	m_D3D->TurnZBufferOn();
+	m_D3D->TurnZBufferOff();
 
 	D3DXMatrixTranslation(&worldMatrix, m_Camera->GetPosition().x, m_Camera->GetPosition().y, m_Camera->GetPosition().z);
 
@@ -545,15 +1138,37 @@ bool GraphicsClass::Render(float rotation, float deltavalue)
 	result = m_textureShader->Render(m_D3D->GetDeviceContext(), skyBox->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix,
 		skyBox->GetTextureArray()[0]);
 
-	m_D3D->TurnZBufferOff();
+	m_D3D->TurnZBufferOn();
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+	if (drawText) {
+		// Turn off the Z buffer to begin all 2D rendering.
+		m_D3D->TurnZBufferOff();
 
+		D3DXMatrixTranslation(&worldMatrix, 0.0f, 0.0f, 0.0f);
+
+
+		// Turn on the alpha blending before rendering the text.
+		m_D3D->TurnOnAlphaBlending();
+
+		// Render the text strings.
+		result = m_text->Render(m_D3D->GetDeviceContext(), worldMatrix, orthoMatrix);
+		if (!result)
+		{
+			return false;
+		}
+
+		// Turn off alpha blending after rendering the text.
+		m_D3D->TurnOffAlphaBlending();
+
+		// Turn the Z buffer back on now that all 2D rendering has completed.
+		m_D3D->TurnZBufferOn();
+	}
 
 	D3DXMatrixTranslation(&worldMatrix, -3.0f, 2.0f, 0.0f);
 
-	
+
 
 	// Turn on alpha blending for the fire transparency.
 	m_D3D->TurnOnAlphaBlending();
@@ -564,7 +1179,7 @@ bool GraphicsClass::Render(float rotation, float deltavalue)
 	m_fire->Render(m_D3D->GetDeviceContext());
 
 	// Render the square model using the fire shader.
-	result = m_fireShader->Render(m_D3D->GetDeviceContext(), m_Model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix,
+	result = m_fireShader->Render(m_D3D->GetDeviceContext(), m_fire->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix,
 		m_fire->getTexture1(), m_fire->getTexture2(), m_fire->getTexture3(), frameTime, scrollSpeeds,
 		scales, distortion1, distortion2, distortion3, distortionScale, distortionBias);
 	if (!result)
@@ -582,24 +1197,39 @@ bool GraphicsClass::Render(float rotation, float deltavalue)
 	m_Model->Render(m_D3D->GetDeviceContext());
 
 	// Render the model using the light shader.
-	result = m_specMapShader->Render(m_D3D->GetDeviceContext(), m_Model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, 
-								    m_Model->GetTextureArray(), m_Light->GetDirection(), m_Light->GetDiffuseColor(), m_Camera->GetPosition(),
-									m_Light->GetSpecularColor(), m_Light->GetSpecularPower());
-	if(!result)
+	result = m_specMapShader->Render(m_D3D->GetDeviceContext(), m_Model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix,
+		m_Model->GetTextureArray(), m_Light->GetDirection(), m_Light->GetDiffuseColor(), m_Camera->GetPosition(),
+		m_Light->GetSpecularColor(), m_Light->GetSpecularPower());
+	if (!result)
 	{
 		return false;
 	}
 
-	
 	D3DXMatrixTranslation(&worldMatrix, 0.0f, 2.5f, 0.0f);
+
+	// Rotate the world matrix by the rotation value so that the triangle will spin.
+	D3DXMatrixRotationY(&worldMatrix, rotation);
 
 	m_bumpModel->Render(m_D3D->GetDeviceContext());
 
 	result = m_bumpMapShader->Render(m_D3D->GetDeviceContext(), m_bumpModel->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix,
 		m_bumpModel->GetTextureArray(), m_Light->GetDirection(), m_Light->GetDiffuseColor(), m_Light->getAmbientColour());
-	
+
+	// Render the terrain
+	D3DXMatrixTranslation(&worldMatrix, -100.0f, -6.0f, -100.0f);
+
+	terrain->render(m_D3D->GetDeviceContext());
+
+	result = m_terrainShader->render(m_D3D->GetDeviceContext(), terrain->getIndexCount(), worldMatrix, viewMatrix, projectionMatrix, 
+		m_Light->getAmbientColour(), m_Light->GetDiffuseColor(), m_Light->GetDirection(), terrain->getGrassTexture(), terrain->getSlopeTexture(), terrain->getRockTexture());
+	if (!result) {
+		return false;
+	}
+
 	// Turn on alpha blending.
 	m_D3D->TurnOnAlphaBlending();
+
+	D3DXMatrixTranslation(&worldMatrix, -3.0f, 1.0f, 0.0f);
 
 	// Put the particle system vertex and index buffers on the graphics pipeline to prepare them for drawing.
 	m_ParticleSystem->Render(m_D3D->GetDeviceContext());
@@ -614,8 +1244,8 @@ bool GraphicsClass::Render(float rotation, float deltavalue)
 
 	m_D3D->TurnOffAlphaBlending();
 
-	// Present the rendered scene to the screen.
-	m_D3D->EndScene();
+	
+
 
 	return true;
 }

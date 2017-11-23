@@ -39,7 +39,7 @@ bool SystemClass::Initialize()
 	InitializeWindows(screenWidth, screenHeight);
 
 	// Create the input object.  This object will be used to handle reading the keyboard input from the user.
-	m_Input = new InputClass;
+	m_Input = new InputSystem;
 	if(!m_Input)
 	{
 		return false;
@@ -62,6 +62,15 @@ bool SystemClass::Initialize()
 		return false;
 	}
 	
+	m_Timer = new TimerClass;
+	if (!m_Timer) {
+		return false;
+	}
+
+	result = m_Timer->Initialize();
+	if (!result) {
+		return false;
+	}
 
 	// Create the audio object
 	m_sound = new SoundClass;
@@ -78,7 +87,7 @@ bool SystemClass::Initialize()
 	}
 
 	// Create the fps object.
-	m_Fps = new FpsClass;
+	m_Fps = new FPSTracker;
 	if (!m_Fps)
 	{
 		return false;
@@ -88,7 +97,7 @@ bool SystemClass::Initialize()
 	m_Fps->Initialize();
 
 	// Create the cpu object.
-	m_Cpu = new CpuClass;
+	m_Cpu = new CPUTracker;
 	if (!m_Cpu)
 	{
 		return false;
@@ -96,21 +105,6 @@ bool SystemClass::Initialize()
 
 	// Initialize the cpu object.
 	m_Cpu->Initialize();
-
-	// Create the timer object.
-	m_Timer = new TimerClass;
-	if (!m_Timer)
-	{
-		return false;
-	}
-
-	// Initialize the timer object.
-	result = m_Timer->Initialize();
-	if (!result)
-	{
-		MessageBox(m_hwnd, L"Could not initialize the Timer object.", L"Error", MB_OK);
-		return false;
-	}
 
 	return true;
 }

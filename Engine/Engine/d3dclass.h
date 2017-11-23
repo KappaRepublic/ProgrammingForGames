@@ -54,6 +54,9 @@ public:
 	void TurnOnAlphaBlending();
 	void TurnOffAlphaBlending();
 
+	ID3D11DepthStencilView* getDepthStencilView();
+	void setBackBufferRenderTarget();
+
 private:
 	bool m_vsync_enabled;
 	int m_videoCardMemory;
