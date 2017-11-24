@@ -153,7 +153,7 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd, Inp
 		return false;
 	}
 
-	result = m_fire->initialize(m_D3D->GetDevice(), "../Engine/data/heightmap02.bmp", L"../Engine/data/water.png", L"../Engine/data/noise01.dds", L"../Engine/data/alpha01.dds", 100, 100);
+	result = m_fire->initialize(m_D3D->GetDevice(), "../Engine/data/heightmap02.bmp", L"../Engine/data/water.jpg", L"../Engine/data/noise01.dds", L"../Engine/data/alpha01.dds", 100, 100);
 	if (!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the fire object.", L"Error", MB_OK);
@@ -250,7 +250,7 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd, Inp
 
 	// Initialize the light object.
 	m_Light->setAmbientColour(0.2f, 0.2f, 0.2f, 0.3f);
-	m_Light->SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
+	m_Light->SetDiffuseColor(0.8f, 0.7f, 0.5f, 0.8f);
 	m_Light->SetDirection(0.5f, -1.0f, 0.0f);
 	m_Light->SetSpecularColor(1.0f, 1.0f, 1.0f, 1.0f);
 	m_Light->SetSpecularPower(16.0f);
@@ -460,7 +460,7 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd, Inp
 		return false;
 	}
 
-	result = terrain->initialize(m_D3D->GetDevice(), "../Engine/data/heightmap01.bmp", L"../Engine/data/Rough_rock_012_COLOR.jpg", L"../Engine/data/slope.dds", L"../Engine/data/rock.dds", 100, 100);
+	result = terrain->initialize(m_D3D->GetDevice(), "../Engine/data/heightmap01.bmp", L"../Engine/data/Sand 002_COLOR.jpg", L"../Engine/data/slope.dds", L"../Engine/data/rock.dds", 100, 100);
 	if (!result) {
 		MessageBox(hwnd, L"Could not initialize the terrain object.", L"Error", MB_OK);
 		return false;
@@ -810,7 +810,7 @@ bool GraphicsClass::Render(float rotation, float deltavalue)
 	tempRotZ = m_Camera->GetRotation().z;
 
 	// Render the entire scene to the texture first.
-
+	/*
 	m_Camera->SetPosition(0.0f, 15.0f, 0.0f);
 	m_Camera->SetRotation(0.0f, 0.0f, 0.0f);
 
@@ -892,7 +892,7 @@ bool GraphicsClass::Render(float rotation, float deltavalue)
 		return false;
 	}
 
-	
+	*/
 	
 
 	// m_D3D->GetDevice()->Render
@@ -920,7 +920,7 @@ bool GraphicsClass::Render(float rotation, float deltavalue)
 	m_Camera->GetViewMatrix(viewMatrix);
 	m_D3D->GetOrthoMatrix(orthoMatrix);
 
-	
+	/*
 	// Put the debug window vertex and index buffers on the graphics pipeline to prepare them for drawing.
 	result = debugWindow1->Render(m_D3D->GetDeviceContext(), 150, 150);
 	if (!result)
@@ -1010,7 +1010,7 @@ bool GraphicsClass::Render(float rotation, float deltavalue)
 	{
 		return false;
 	}
-	
+	*/
 	
 	
 	// Turn the Z buffer back on now that all 2D rendering has completed.
@@ -1087,7 +1087,7 @@ bool GraphicsClass::renderToTexture(float rotation, int textureId) {
 
 bool GraphicsClass::renderScene(float rotation, bool drawText, bool drawModel) {
 	D3DXMATRIX worldMatrix, viewMatrix, projectionMatrix, orthoMatrix;
-	D3DXMATRIX yRotation, translation;
+	D3DXMATRIX yRotation, translation, scale, bumpRotation;
 
 	bool result;
 	D3DXVECTOR3 scrollSpeeds, scales;
@@ -1102,8 +1102,26 @@ bool GraphicsClass::renderScene(float rotation, bool drawText, bool drawModel) {
 		frameTime = 0.0f;
 	}
 
+	// Rotate light?
+	/*
+	float newX = m_Light->GetDirection().x + 0.01f;
+
+	
+	if (newX >= 1.0f) {
+		newX = -1.0f;
+	}
+
+	float newZ = m_Light->GetDirection().z + 0.01f;
+	if (newZ >= 1.0f) {
+		newZ = -1.0f;
+	}
+	
+
+	m_Light->SetDirection(newX, m_Light->GetDirection().y, m_Light->GetDirection().z);
+	*/
+
 	// Set the three scrolling speeds for the three different noise textures.
-	scrollSpeeds = D3DXVECTOR3(0.3f, 0.6f, 0.3f);
+	scrollSpeeds = D3DXVECTOR3(0.01f, 0.02f, 0.01f);
 
 	// Set the three scales which will be used to create the three different noise octave textures.
 	scales = D3DXVECTOR3(1.0f, 2.0f, 3.0f);
@@ -1173,7 +1191,11 @@ bool GraphicsClass::renderScene(float rotation, bool drawText, bool drawModel) {
 	
 
 	// Rotate the world matrix by the rotation value so that the triangle will spin.
-	D3DXMatrixRotationY(&worldMatrix, rotation);
+	D3DXMatrixRotationY(&bumpRotation, rotation);
+	D3DXMatrixScaling(&scale, 10.0f, 10.0f, 10.0f);
+	D3DXMatrixMultiply(&worldMatrix, &bumpRotation, &scale);
+	D3DXMatrixTranslation(&translation, 0.0f, 20.0f, 0.0f);
+	D3DXMatrixMultiply(&worldMatrix, &worldMatrix, &translation);
 
 	// Put the model vertex and index buffers on the graphics pipeline to prepare them for drawing.
 	m_Model->Render(m_D3D->GetDeviceContext());
