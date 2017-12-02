@@ -24,6 +24,7 @@ GraphicsClass::GraphicsClass()
 	m_ParticleShader = 0;
 	m_ParticleSystem = 0;
 	m_timer = 0;
+	bitmap = 0;
 
 	renderTexture1 = 0;
 	renderTexture2 = 0;
@@ -249,7 +250,7 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd, Inp
 	}
 
 	// Initialize the light object.
-	m_Light->setAmbientColour(0.2f, 0.2f, 0.2f, 0.3f);
+	m_Light->setAmbientColour(0.2f, 0.2f, 0.8f, 0.3f);
 	m_Light->SetDiffuseColor(0.8f, 0.7f, 0.5f, 0.8f);
 	m_Light->SetDirection(0.5f, -1.0f, 0.0f);
 	m_Light->SetSpecularColor(1.0f, 1.0f, 1.0f, 1.0f);
@@ -284,6 +285,8 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd, Inp
 		return false;
 	}
 
+	
+
 	// Create the render to texture object.
 	renderTexture1 = new RenderTexture;
 	if (!renderTexture1)
@@ -297,6 +300,7 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd, Inp
 	{
 		return false;
 	}
+
 	// Create the render to texture object.
 	renderTexture2 = new RenderTexture;
 	if (!renderTexture2)
@@ -367,6 +371,17 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd, Inp
 		return false;
 	}
 
+	// Create the bitmap object
+	bitmap = new Bitmap;
+	if (!bitmap) {
+		return false;
+	}
+
+	result = bitmap->initialize(m_D3D->GetDevice(), screenWidth, screenHeight, L"../Engine/data/Sand 002_COLOR.jpg", 100, 100);
+	if (!result) {
+		MessageBox(hwnd, L"Could not initialize the bitmap object", L"Error", MB_OK);
+		return false;
+	}
 
 	// Create the debug window object.
 	debugWindow1 = new DebugWindowClass;
@@ -383,6 +398,7 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd, Inp
 		return false;
 	}
 
+	/*
 	debugWindow2 = new DebugWindowClass;
 	if (!debugWindow2)
 	{
@@ -452,7 +468,7 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd, Inp
 		MessageBox(hwnd, L"Could not initialize the debug window object.", L"Error", MB_OK);
 		return false;
 	}
-
+	*/
 
 	// Initialize the terrain class 
 	terrain = new Terrain;
@@ -460,7 +476,7 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd, Inp
 		return false;
 	}
 
-	result = terrain->initialize(m_D3D->GetDevice(), "../Engine/data/heightmap01.bmp", L"../Engine/data/Sand 002_COLOR.jpg", L"../Engine/data/slope.dds", L"../Engine/data/rock.dds", 100, 100);
+	result = terrain->initialize(m_D3D->GetDevice(), "../Engine/data/heightmap01.bmp", L"../Engine/data/Rough_rock_012_COLOR.jpg", L"../Engine/data/slope.dds", L"../Engine/data/Rough_rock_012_OCC.jpg", 100, 100);
 	if (!result) {
 		MessageBox(hwnd, L"Could not initialize the terrain object.", L"Error", MB_OK);
 		return false;
@@ -542,6 +558,14 @@ void GraphicsClass::Shutdown()
 		delete debugWindow6;
 		debugWindow6 = 0;
 	}
+
+	// Release the bitmap object
+	if (bitmap) {
+		bitmap->shutDown();
+		delete bitmap;
+		bitmap = 0;
+	}
+
 	// Release the render to texture object.
 	if (renderTexture1)
 	{
@@ -810,7 +834,7 @@ bool GraphicsClass::Render(float rotation, float deltavalue)
 	tempRotZ = m_Camera->GetRotation().z;
 
 	// Render the entire scene to the texture first.
-	/*
+	
 	m_Camera->SetPosition(0.0f, 15.0f, 0.0f);
 	m_Camera->SetRotation(0.0f, 0.0f, 0.0f);
 
@@ -892,7 +916,7 @@ bool GraphicsClass::Render(float rotation, float deltavalue)
 		return false;
 	}
 
-	*/
+	
 	
 
 	// m_D3D->GetDevice()->Render
@@ -920,9 +944,9 @@ bool GraphicsClass::Render(float rotation, float deltavalue)
 	m_Camera->GetViewMatrix(viewMatrix);
 	m_D3D->GetOrthoMatrix(orthoMatrix);
 
-	/*
+	
 	// Put the debug window vertex and index buffers on the graphics pipeline to prepare them for drawing.
-	result = debugWindow1->Render(m_D3D->GetDeviceContext(), 150, 150);
+	result = debugWindow1->Render(m_D3D->GetDeviceContext(), 50, 50);
 	if (!result)
 	{
 		return false;
@@ -936,6 +960,7 @@ bool GraphicsClass::Render(float rotation, float deltavalue)
 		return false;
 	}
 
+	/*
 	// Put the debug window vertex and index buffers on the graphics pipeline to prepare them for drawing.
 	result = debugWindow2->Render(m_D3D->GetDeviceContext(), 250, 150);
 	if (!result)
@@ -1013,6 +1038,18 @@ bool GraphicsClass::Render(float rotation, float deltavalue)
 	*/
 	
 	
+	// Render the bitmap
+
+	/*
+	result = bitmap->render(m_D3D->GetDeviceContext(), 50, 50);
+	if (!result) {
+		return false;
+	}
+
+	result = m_textureShader->Render(m_D3D->GetDeviceContext(), bitmap->getIndexCount(), worldMatrix, viewMatrix, orthoMatrix, bitmap->getTexture());
+	*/
+
+
 	// Turn the Z buffer back on now that all 2D rendering has completed.
 	m_D3D->TurnZBufferOn();
 
@@ -1185,10 +1222,6 @@ bool GraphicsClass::renderScene(float rotation, bool drawText, bool drawModel) {
 	}
 
 	D3DXMatrixTranslation(&worldMatrix, -3.0f, 2.0f, 0.0f);
-
-
-
-	
 
 	// Rotate the world matrix by the rotation value so that the triangle will spin.
 	D3DXMatrixRotationY(&bumpRotation, rotation);

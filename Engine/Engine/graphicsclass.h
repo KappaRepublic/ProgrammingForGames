@@ -25,6 +25,7 @@
 
 #include "RenderTexture.h"
 #include "DebugWindow.h"
+#include "Bitmap.h"
 
 #include "ParticleShaderClass.h"
 #include "ParticleSystemClass.h"
@@ -97,6 +98,8 @@ private:
 	DebugWindowClass* debugWindow5;
 	DebugWindowClass* debugWindow6;
 	ModelClass* test;
+
+	Bitmap* bitmap;
 
 	ParticleShaderClass* m_ParticleShader;
 	ParticleSystemClass* m_ParticleSystem;
