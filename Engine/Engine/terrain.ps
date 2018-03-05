@@ -62,8 +62,8 @@ float4 TerrainPixelShader(PixelInputType input) : SV_TARGET
 	// Determine which texture to use based on height.
     if(slope < 0.2)
     {
-        blendAmount = slope / 0.2f;
-        textureColor = lerp(grassColor, slopeColor, blendAmount);
+		blendAmount = slope / 0.2f;
+		textureColor = lerp(grassColor, slopeColor, blendAmount);
     }
 	
     if((slope < 0.7) && (slope >= 0.2f))

@@ -146,7 +146,7 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd, Inp
 		return false;
 	}
 
-	result = m_bumpModel->Initialize(m_D3D->GetDevice(), "../Engine/data/laytonGold.txt", L"../Engine/data/gold.png", L"../Engine/data/Normal.png",
+	result = m_bumpModel->Initialize(m_D3D->GetDevice(), "../Engine/data/laytonGold.txt", L"../Engine/data/npc.png", L"../Engine/data/Normal.png",
 		L"../Engine/data/Bronze_002_SPEC.png");
 
 	m_fire = new Terrain;
@@ -476,7 +476,7 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd, Inp
 		return false;
 	}
 
-	result = terrain->initialize(m_D3D->GetDevice(), "../Engine/data/heightmap01.bmp", L"../Engine/data/Rough_rock_012_COLOR.jpg", L"../Engine/data/slope.dds", L"../Engine/data/Rough_rock_012_OCC.jpg", 100, 100);
+	result = terrain->initialize(m_D3D->GetDevice(), "../Engine/data/heightmap01.bmp", L"../Engine/data/Gold.png", L"../Engine/data/Purple.png", L"../Engine/data/Green.png", 100, 100);
 	if (!result) {
 		MessageBox(hwnd, L"Could not initialize the terrain object.", L"Error", MB_OK);
 		return false;
